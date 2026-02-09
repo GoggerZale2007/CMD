@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>CMD</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/cascadia-mono@5.0.1/index.min.css" rel="stylesheet">
     
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { 
             background-color: #000; display: flex; flex-direction: column;
-            height: 100vh; margin: 0; font-family: 'Fira Code', monospace; color: #fff;
+            height: 100vh; margin: 0; font-family: 'Cascadia Mono', monospace; color: #fff;
             overflow: hidden;
         }
 
@@ -28,33 +28,35 @@
 
         #command-bar {
             flex-grow: 1; background: transparent; border: none; color: #fff;
-            font-family: 'Fira Code', monospace; font-size: 18px; outline: none;
+            font-family: 'Cascadia Mono', monospace; font-size: 18px; outline: none;
             resize: none; min-height: 24px; width: 100%; 
             caret-color: transparent; 
             padding: 0; line-height: 1.4; white-space: pre-wrap; word-break: break-all;
         }
 
+        /* Instant On/Off Blinking Underscore */
         #blinker {
             display: inline-block; width: 12px; height: 3px;
-            background-color: #fff; animation: blink 1s infinite;
+            background-color: #fff; 
+            animation: blink-instant 1s steps(2, start) infinite;
             position: absolute; pointer-events: none;
         }
-        @keyframes blink { 50% { opacity: 0; } }
+        @keyframes blink-instant { to { visibility: hidden; } }
 
-        /* Error Highlights */
+        /* Error Highlights from your image */
         .error-line { background-color: #441111; display: inline-block; width: 100%; }
         .error-msg { color: #ff5555; font-weight: bold; margin-top: 4px; font-size: 14px; }
         .output-text { color: #fff; margin-bottom: 2px; font-size: 16px; }
 
-        /* Keyboard UI */
+        /* Keyboard UI for Redmi 13 */
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
         .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 2px; }
-        .pc-key { background: #262626; color: #fff; border: none; padding: 8px 10px; font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 40px; }
+        .pc-key { background: #262626; color: #fff; border: none; padding: 8px 10px; font-size: 11px; font-family: 'Cascadia Mono'; border-radius: 3px; min-width: 40px; }
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
-        .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Fira Code'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+        .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Cascadia Mono'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
         .key:active { background: #4a4a4a; }
         .active-mod { background: #fff !important; color: #000 !important; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
@@ -225,7 +227,7 @@
             
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
-            context.font = "18px 'Fira Code'";
+            context.font = "18px 'Cascadia Mono'";
             const lastLineWidth = context.measureText(lastLine).width;
             
             blinker.style.left = lastLineWidth + "px";
@@ -261,7 +263,7 @@
             } else {
                 if (isPrankActive) {
                     logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                    logToScreen("TypeError", "error-msg");
+                    logToScreen("SyntaxError", "error-msg");
                 } else {
                     const blob = new Blob([`
                         onmessage = function(e) {
@@ -278,7 +280,7 @@
                             logToScreen(e.data.val);
                         } else if (e.data.type === 'error') {
                             logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                            logToScreen("TypeError", "error-msg");
+                            logToScreen("TypeErrormsg");
                         }
                     };
                     worker.postMessage(val);
