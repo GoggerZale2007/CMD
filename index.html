@@ -26,7 +26,6 @@
             resize: none; min-height: 30px; width: 100%; caret-color: #fff;
         }
 
-        /* Keyboard Container: Logic handled by JavaScript */
         #keyboard-wrapper {
             background: #171717; 
             display: none; 
@@ -34,7 +33,6 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Termux/PC Style Bar */
         #pc-bar {
             display: flex; gap: 2px; padding: 5px; background: #000;
             border-top: 1px solid #333; overflow-x: auto;
@@ -44,7 +42,6 @@
             font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 45px;
         }
 
-        /* Gboard Style Keyboard */
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         
@@ -62,7 +59,7 @@
         .output-text { color: #fff; margin-bottom: 2px; font-size: 13px; }
     </style>
 </head>
-<body onclick="bar.focus()">
+<body onclick="handleInteraction()">
 
     <div id="display-screen">
         <div id="text-output"></div>
@@ -77,7 +74,8 @@
             <button class="pc-key" onclick="addText('CTRL')">CTRL</button>
             <button class="pc-key" onclick="addText('ALT')">ALT</button>
             <button class="pc-key" onclick="addText('TAB')">TAB</button>
-            <button class="pc-key" onclick="addText('ESC')">ESC</button>
+            <button class="pc-key" onclick="addText('&quot;')">"</button>
+            <button class="pc-key" onclick="addText('\'')">'</button>
             <button class="pc-key" onclick="addText('{')">{</button>
             <button class="pc-key" onclick="addText('}')">}</button>
             <button class="pc-key" onclick="addText('[')">[</button>
@@ -134,15 +132,25 @@
         const kbWrapper = document.getElementById('keyboard-wrapper');
         let shiftActive = false;
 
-        // Device Detection Logic
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         
-        if (isMobile && window.innerWidth <= 768) {
+        // Detect if mobile browser is NOT in Desktop Mode
+        const isNotDesktopMode = isMobile && window.innerWidth <= 768;
+
+        if (isNotDesktopMode) {
             kbWrapper.style.display = 'flex';
-            bar.setAttribute('inputmode', 'none'); // Blocks Gboard on mobile
+            bar.setAttribute('inputmode', 'none');
         } else {
-            kbWrapper.style.display = 'none'; // Hidden for PC/Desktop Mode
+            kbWrapper.style.display = 'none';
             bar.removeAttribute('inputmode');
+        }
+
+        function handleInteraction() {
+            // Only force fullscreen if mobile and NOT in desktop mode
+            if (isNotDesktopMode && !document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+            bar.focus();
         }
 
         function logToScreen(content, className = "") {
