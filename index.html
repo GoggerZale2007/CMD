@@ -152,7 +152,7 @@
                 if (data.run.stdout) logToScreen(data.run.stdout, "output-text");
                 if (data.run.stderr) logToScreen("Syntax error!", "error-msg");
             } catch (err) {
-                logToScreen("Syntax error!", "error-msg");
+                logToScreen("TypeError", "error-msg");
             }
             bar.value = "";
             bar.style.height = "24px";
