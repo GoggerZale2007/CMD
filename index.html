@@ -197,6 +197,7 @@
             display.scrollTop = display.scrollHeight;
         }
 
+        // Standard print for local JS
         window.print = function(val) { logToScreen(val, "output-text"); };
 
         function toggleShift() {
@@ -232,23 +233,17 @@
             }
         }
 
-        async function execute() {
+        function execute() {
             const code = bar.value;
             if (!code.trim()) return;
+
             try {
-                const res = await fetch("https://emkc.org/api/v2/piston/execute", {
-                    method: "POST",
-                    body: JSON.stringify({ language: "js", version: "18.15.0", files: [{ content: code }] })
-                });
-                const data = await res.json();
-                if (data.run.stderr) {
-                    logToScreen("TypeError", "error-msg");
-                } else if (data.run.stdout) {
-                    logToScreen(data.run.stdout, "output-text");
-                }
+                // Local JS execution
+                eval(code);
             } catch (err) {
                 logToScreen("TypeError", "error-msg");
             }
+
             bar.value = "";
             bar.style.height = "30px";
         }
