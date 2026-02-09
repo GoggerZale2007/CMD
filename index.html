@@ -23,7 +23,6 @@
         }
 
         #prompt-symbol { color: #fff; margin-right: 8px; flex-shrink: 0; line-height: 1.2; }
-        
         #input-container { position: relative; flex-grow: 1; display: flex; align-items: flex-start; }
 
         #command-bar {
@@ -40,16 +39,24 @@
         .output-text { color: #fff; margin-bottom: 5px; font-size: 16px; white-space: pre-wrap; }
         .output-img { max-width: 100%; border-radius: 4px; margin: 10px 0; border: 1px solid #333; }
 
-        /* Support for potential coded animations */
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-spin { animation: spin 2s linear infinite; }
-
-        #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+        /* KEYBOARD FIX: Fixed height prevents the vertical "stretch" glitch */
+        #keyboard-wrapper { 
+            background: #171717; 
+            display: none; 
+            flex-direction: column; 
+            height: 300px; /* Fixed height for mobile */
+            padding-bottom: env(safe-area-inset-bottom); 
+        }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
+
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
         .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 5px; }
         .pc-key { background: #262626; color: #fff; border: none; padding: 10px 12px; font-size: 12px; font-family: 'Cascadia Mono'; border-radius: 3px; min-width: 42px; }
-        .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Cascadia Mono'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+
+        #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 4px; flex-grow: 1; }
+        .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; flex: 1; }
+        .key { background: #333333; color: #eee; border: none; font-family: 'Cascadia Mono'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+        .active-mod { background: #fff !important; color: #000 !important; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
     </style>
 </head>
@@ -79,10 +86,6 @@
                 <button class="pc-key" onclick="addText('8')">8</button>
                 <button class="pc-key" onclick="addText('9')">9</button>
                 <button class="pc-key" onclick="addText('0')">0</button>
-                <button class="pc-key" onclick="addText('+')">+</button>
-                <button class="pc-key" onclick="addText('-')">-</button>
-                <button class="pc-key" onclick="addText('*')">*</button>
-                <button class="pc-key" onclick="addText('/')">/</button>
             </div>
             <div class="pc-row">
                 <button class="pc-key" onclick="addText('!')">!</button>
@@ -95,17 +98,8 @@
                 <button class="pc-key" onclick="addText(']')">]</button>
                 <button class="pc-key" onclick="addText('{')">{</button>
                 <button class="pc-key" onclick="addText('}')">}</button>
-                <button class="pc-key" onclick="addText('=')">=</button>
             </div>
             <div class="pc-row">
-                <button class="pc-key" onclick="addText('<')"><</button>
-                <button class="pc-key" onclick="addText('>')">></button>
-                <button class="pc-key" onclick="addText(':')">:</button>
-                <button class="pc-key" onclick="addText('&quot;')">"</button>
-                <button class="pc-key" onclick="addText('\'')">'</button>
-                <button class="pc-key" onclick="addText('`')">`</button>
-                <button class="pc-key" onclick="addText('|')">|</button>
-                <button class="pc-key" onclick="addText('_')">_</button>
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
                 <button class="pc-key" onclick="handleTab()">TAB</button>
@@ -164,13 +158,8 @@
         let shiftActive = false, ctrlActive = false, altActive = false;
         let isPrankActive = false, waitingForConfirm = false;
 
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isNotDesktopMode = isMobile && window.innerWidth <= 768;
-
-        if (isNotDesktopMode) kbWrapper.style.display = 'flex';
-
         function handleInteraction() {
-            if (isNotDesktopMode && !document.fullscreenElement) {
+            if (window.innerWidth <= 768 && !document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
             }
             bar.focus();
@@ -178,20 +167,17 @@
 
         function logToScreen(content, className = "") {
             const div = document.createElement('div');
-            // Check for image URL or Base64 string
             const imgRegex = /\.(jpeg|jpg|gif|png|webp|svg)$|data:image\//i;
             
             if (imgRegex.test(String(content).trim())) {
                 const img = document.createElement('img');
                 img.src = content.trim();
                 img.className = "output-img";
-                // If it's a gif or specific code indicates animation, you could add classes here
                 div.appendChild(img);
             } else {
                 div.className = className || "output-text";
                 div.innerHTML = content;
             }
-            
             screen.appendChild(div);
             display.scrollTop = display.scrollHeight;
         }
@@ -264,14 +250,12 @@
             } else {
                 if (isPrankActive) {
                     logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                    logToScreen("CodeError", "error-msg");
+                    logToScreen("TypeError", "error-msg");
                 } else {
                     const blob = new Blob([`
                         onmessage = function(e) {
                             try {
-                                // Define the print() command for the user
-                                const print = (content) => postMessage({type: 'log', val: content});
-                                
+                                const print = (c) => postMessage({type: 'log', val: c});
                                 const result = eval(e.data);
                                 if (result !== undefined) postMessage({type: 'log', val: result});
                             } catch (err) {
@@ -283,7 +267,7 @@
                     const worker = new Worker(URL.createObjectURL(blob));
                     worker.onmessage = (e) => {
                         if (e.data.type === 'log') {
-                            if (e.data.val !== undefined) logToScreen(e.data.val);
+                            logToScreen(e.data.val);
                         } else if (e.data.type === 'error') {
                             logToScreen("> <span class='error-line'>" + originalCode + "</span>");
                             logToScreen(e.data.errorType, "error-msg");
@@ -291,7 +275,6 @@
                     };
                     logToScreen("> " + originalCode);
                     worker.postMessage(val);
-                    setTimeout(() => worker.terminate(), 5000); // 5s timeout for animated scripts
                 }
             }
             bar.value = "";
