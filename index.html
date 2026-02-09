@@ -17,26 +17,21 @@
         #display-screen { flex-grow: 1; padding: 10px; overflow-y: auto; }
         
         #input-area {
-            display: flex; align-items: center; background-color: #000;
+            display: flex; align-items: flex-start; background-color: #000;
             padding: 10px 12px; border-top: 1px solid #1a1a1a;
-            font-size: 16px; min-height: 45px; position: relative;
+            font-size: 16px; min-height: 45px;
         }
 
-        #prompt-symbol { color: #fff; margin-right: 5px; flex-shrink: 0; }
+        #prompt-symbol { color: #fff; margin-right: 8px; flex-shrink: 0; margin-top: 2px; }
         
-        #mirror-text { white-space: pre-wrap; word-break: break-all; }
-
         #command-bar {
-            position: absolute; opacity: 0; pointer-events: none;
+            flex-grow: 1; background: transparent; border: none; color: #fff;
+            font-family: 'Fira Code', monospace; font-size: 16px; outline: none;
+            resize: none; min-height: 24px; width: 100%; caret-color: #fff;
+            padding: 0; line-height: 1.4;
         }
 
-        #blinker {
-            display: inline-block; width: 10px; height: 3px;
-            background-color: #fff; animation: blink 1s infinite;
-            margin-left: 1px; vertical-align: baseline;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-
+        /* Keyboard UI */
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
 
@@ -62,9 +57,7 @@
 
     <div id="input-area">
         <span id="prompt-symbol">></span>
-        <span id="mirror-text"></span>
-        <div id="blinker"></div>
-        <textarea id="command-bar" spellcheck="false" inputmode="none"></textarea>
+        <textarea id="command-bar" spellcheck="false" rows="1" inputmode="none"></textarea>
     </div>
 
     <div id="keyboard-wrapper">
@@ -114,7 +107,6 @@
                 <button class="pc-key" onclick="addText('>')">></button>
                 <button class="pc-key" onclick="addText('?')">?</button>
                 <button class="pc-key" onclick="addText('/')">/</button>
-                <button class="pc-key" onclick="addText(',')">,</button>
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
                 <button class="pc-key" onclick="handleTab()">TAB</button>
@@ -158,7 +150,7 @@
                 <button class="key" onclick="backspace()" style="flex:1.5">DEL</button>
             </div>
             <div class="kb-row">
-                <button class="key special-key" onclick="addText('.')">.</button>
+                <button class="key" onclick="addText('.')">.</button>
                 <button class="key" style="flex:4" onclick="addText(' ')">SPACE</button>
                 <button class="key run-key" onclick="handleRun()">RUN</button>
             </div>
@@ -167,7 +159,6 @@
 
     <script>
         const bar = document.getElementById('command-bar');
-        const mirror = document.getElementById('mirror-text');
         const screen = document.getElementById('text-output');
         const display = document.getElementById('display-screen');
         const kbWrapper = document.getElementById('keyboard-wrapper');
@@ -211,13 +202,13 @@
             }
         }
 
-        function handleTab() { bar.value += "    "; updateMirror(); }
-        function handleEsc() { bar.value = ""; updateMirror(); }
+        function handleTab() { bar.value += "    "; autoResize(); }
+        function handleEsc() { bar.value = ""; autoResize(); }
 
         function addText(txt) {
             bar.value += shiftActive ? txt.toUpperCase() : txt.toLowerCase();
             if (shiftActive) toggleShift(); 
-            updateMirror();
+            autoResize();
         }
 
         function backspace() {
@@ -228,18 +219,19 @@
                 return;
             }
             bar.value = bar.value.slice(0, -1);
-            updateMirror();
+            autoResize();
         }
 
-        function updateMirror() {
-            mirror.textContent = bar.value;
+        function autoResize() {
+            bar.style.height = 'auto';
+            bar.style.height = bar.scrollHeight + 'px';
             display.scrollTop = display.scrollHeight;
         }
 
         function handleRun() {
             if (shiftActive) {
                 bar.value += "\n";
-                updateMirror();
+                autoResize();
                 toggleShift();
             } else {
                 execute();
@@ -283,10 +275,10 @@
                 }
             }
             bar.value = "";
-            updateMirror();
+            bar.style.height = "24px";
         }
 
-        bar.addEventListener("input", updateMirror);
+        bar.addEventListener("input", autoResize);
         bar.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
