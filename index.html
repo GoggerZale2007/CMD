@@ -8,161 +8,159 @@
     
     <style>
         * { box-sizing: border-box; }
-
         body { 
-            background-color: #0c0c0c; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh;
-            margin: 0;
-            font-family: 'Fira Code', monospace;
+            background-color: #000; display: flex; flex-direction: column;
+            height: 100vh; margin: 0; font-family: 'Fira Code', monospace; color: #fff;
+            overflow: hidden;
         }
 
-        #cmd-window {
-            width: 500px; 
-            height: 500px;
-            background-color: #000;
-            border: 1px solid #333;
-            display: flex; 
-            flex-direction: column;
-            position: relative;
-        }
-
-        #newline-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #222;
-            color: #ffffff;
-            border: 1px solid #444;
-            padding: 5px 10px;
-            font-size: 11px;
-            cursor: pointer;
-            font-family: 'Fira Code', monospace;
-            z-index: 10;
-        }
-
+        /* 1. Improved Output Screen (Text & Graphics) */
         #display-screen {
-            flex-grow: 1;
-            color: #ffffff;
-            padding: 20px;
-            padding-top: 45px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-size: 14px;
+            flex-grow: 1; padding: 15px; overflow-y: auto; position: relative;
         }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1; }
+        #text-output { position: relative; z-index: 2; }
 
-        #command-bar-container {
-            display: flex;
-            background-color: #000;
-            border-top: 1px solid #222;
-            padding: 10px;
+        /* 2. Command Line with "_" Cursor */
+        #input-area {
+            display: flex; align-items: flex-start; background-color: #000;
+            padding: 10px 15px; border-top: 1px solid #1a1a1a;
         }
-
         #command-bar {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            color: #ffffff;
-            font-family: 'Fira Code', monospace;
-            font-size: 16px;
-            outline: none;
-            resize: none;
-            height: 50px;
+            flex-grow: 1; background: transparent; border: none; color: #fff;
+            font-family: 'Fira Code', monospace; font-size: 16px; outline: none;
+            resize: none; caret-color: transparent; min-height: 24px;
         }
-
-        #run-btn {
-            background: #ffffff;
-            color: #000;
-            border: none;
-            padding: 0 15px;
-            margin-left: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            font-family: 'Fira Code', monospace;
+        #cursor {
+            width: 10px; height: 3px; background-color: #fff;
+            animation: blink 0.8s infinite; margin-top: 15px; margin-left: -5px;
         }
+        @keyframes blink { 50% { opacity: 0; } }
 
-        .error-msg { color: #ff5555; font-weight: bold; margin-bottom: 8px; }
-        .output-text { color: #ffffff; margin-bottom: 4px; }
-        .bot-reply { color: #00ff00; font-style: italic; margin-bottom: 8px; } /* Bot talks in Green */
+        /* 3. Virtual Keyboard (Termux Style) */
+        #v-keyboard {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            background: #111; border-top: 1px solid #333;
+        }
+        .key {
+            background: #111; color: #eee; border: 1px solid #222;
+            padding: 15px 0; font-family: 'Fira Code'; font-size: 12px; cursor: pointer;
+        }
+        .key:active { background: #333; }
+        .run-key { background: #fff; color: #000; font-weight: bold; }
+
+        .error-msg { color: #ff5555; font-weight: bold; }
+        .output-text { color: #fff; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
-    <div id="cmd-window">
-        <button id="newline-btn" onclick="addNewLine()">Create New Line</button>
-        <div id="display-screen"></div>
-        <div id="command-bar-container">
-            <textarea id="command-bar" placeholder="Enter command..." spellcheck="false"></textarea>
-            <button id="run-btn" onclick="execute()">RUN</button>
-        </div>
+    <div id="display-screen">
+        <canvas id="graph-canvas"></canvas>
+        <div id="text-output"></div>
+    </div>
+
+    <div id="input-area">
+        <textarea id="command-bar" placeholder="" spellcheck="false" rows="1"></textarea>
+        <div id="cursor"></div>
+    </div>
+
+    <div id="v-keyboard">
+        <button class="key" onclick="addText('TAB')">TAB</button>
+        <button class="key" onclick="addText('CTRL')">CTRL</button>
+        <button class="key" onclick="addText('ESC')">ESC</button>
+        <button class="key" onclick="addText('ALT')">ALT</button>
+        <button class="key" onclick="addText('(')">(</button>
+        <button class="key" onclick="addText(')')">)</button>
+        <button class="key" onclick="addText('\n')">ENTER</button>
+        <button class="key run-key" onclick="execute()">RUN</button>
     </div>
 
     <script>
         const bar = document.getElementById('command-bar');
-        const screen = document.getElementById('display-screen');
+        const screen = document.getElementById('text-output');
+        const canvas = document.getElementById('graph-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Setup Canvas for Graphics
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight * 0.7;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
         function logToScreen(content, className = "") {
             const div = document.createElement('div');
             if (className) div.className = className;
             div.innerHTML = content;
             screen.appendChild(div);
-            screen.scrollTop = screen.scrollHeight;
+            document.getElementById('display-screen').scrollTop = screen.scrollHeight;
         }
 
-        window.print = function(value) {
-            logToScreen(value, "output-text");
-        };
+        window.print = function(val) { logToScreen(val, "output-text"); };
 
-        function addNewLine() {
-            bar.value += "\n";
+        function addText(txt) {
+            if (txt === '\n') { bar.value += '\n'; }
+            else { bar.value += txt + " "; }
             bar.focus();
         }
 
-        function execute() {
-            const input = bar.value.toLowerCase().trim();
-            if (input === "") return;
-
-            // --- TALK BACK FEATURE ---
-            if (input.includes("fuck")) {
-                logToScreen("Bot: Hey! Watch your language.", "bot-reply");
-                bar.value = "";
-                return;
+        // Graphics Logic (Sine / Turtle Simulation)
+        function drawGraphics(code) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (code.includes("sine")) {
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let x = 0; x < canvas.width; x++) {
+                    let y = (canvas.height / 2) + Math.sin(x * 0.05) * 50;
+                    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.stroke();
             }
-            if (input.includes("hello")) {
-                logToScreen("Bot: Hello there! What are we coding today?", "bot-reply");
-                bar.value = "";
-                return;
-            }
-            if (input.includes("roblox")) {
-                logToScreen("Bot: Project Smash or Nico's Nextbots?", "bot-reply");
-                bar.value = "";
-                return;
-            }
-
-            // --- NORMAL EXECUTION ---
-            try {
-                eval(bar.value); 
-            } catch (err) {
-                logToScreen("TypeError", "error-msg");
-            }
-
-            bar.value = "";
-            bar.style.height = "50px";
         }
 
-        bar.addEventListener("keydown", function(e) {
+        async function execute() {
+            const code = bar.value;
+            if (!code.trim()) return;
+
+            drawGraphics(code);
+
+            try {
+                // Using Piston API for Universal Format
+                const res = await fetch("https://emkc.org/api/v2/piston/execute", {
+                    method: "POST",
+                    body: JSON.stringify({ 
+                        language: "js", 
+                        version: "18.15.0", 
+                        files: [{ content: code }] 
+                    })
+                });
+                const data = await res.json();
+                if (data.run.stdout) logToScreen(data.run.stdout, "output-text");
+                if (data.run.stderr) logToScreen("Syntax error!", "error-msg");
+            } catch (err) {
+                logToScreen("Syntax error!", "error-msg");
+            }
+            bar.value = "";
+            bar.style.height = "24px";
+        }
+
+        bar.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 execute();
             }
         });
 
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON') bar.focus();
+        // Auto-resize input height
+        bar.addEventListener("input", function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
         });
-    </script>
 
+        document.addEventListener('click', () => bar.focus());
+    </script>
 </body>
 </html>
