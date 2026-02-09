@@ -31,7 +31,7 @@
             font-family: 'Cascadia Mono', monospace; font-size: 18px; outline: none;
             resize: none; min-height: 24px; width: 100%; 
             caret-color: transparent; 
-            padding: 0; line-height: 1.4; white-space: pre-wrap; word-break: break-all;
+            padding: 0; line-height: 1.2; white-space: pre-wrap; word-break: break-all;
         }
 
         #blinker {
@@ -39,6 +39,8 @@
             background-color: #fff; 
             animation: blink-instant 1s steps(2, start) infinite;
             position: absolute; pointer-events: none;
+            /* Ensures it stays on the same line level as the text */
+            margin-top: 18px; 
         }
         @keyframes blink-instant { to { visibility: hidden; } }
 
@@ -48,9 +50,11 @@
 
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
+        
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
-        .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 2px; }
-        .pc-key { background: #262626; color: #fff; border: none; padding: 8px 10px; font-size: 11px; font-family: 'Cascadia Mono'; border-radius: 3px; min-width: 40px; }
+        .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 5px; }
+        .pc-key { background: #262626; color: #fff; border: none; padding: 10px 12px; font-size: 12px; font-family: 'Cascadia Mono'; border-radius: 3px; min-width: 42px; }
+
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Cascadia Mono'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
@@ -86,21 +90,40 @@
                 <button class="pc-key" onclick="addText('8')">8</button>
                 <button class="pc-key" onclick="addText('9')">9</button>
                 <button class="pc-key" onclick="addText('0')">0</button>
+                <button class="pc-key" onclick="addText('+')">+</button>
+                <button class="pc-key" onclick="addText('-')">-</button>
+                <button class="pc-key" onclick="addText('*')">*</button>
+                <button class="pc-key" onclick="addText('/')">/</button>
+                <button class="pc-key" onclick="addText('=')">=</button>
             </div>
             <div class="pc-row">
                 <button class="pc-key" onclick="addText('!')">!</button>
                 <button class="pc-key" onclick="addText('@')">@</button>
                 <button class="pc-key" onclick="addText('#')">#</button>
                 <button class="pc-key" onclick="addText('$')">$</button>
+                <button class="pc-key" onclick="addText('%')">%</button>
+                <button class="pc-key" onclick="addText('^')">^</button>
+                <button class="pc-key" onclick="addText('&')">&</button>
                 <button class="pc-key" onclick="addText('(')">(</button>
                 <button class="pc-key" onclick="addText(')')">)</button>
+                <button class="pc-key" onclick="addText('[')">[</button>
+                <button class="pc-key" onclick="addText(']')">]</button>
                 <button class="pc-key" onclick="addText('{')">{</button>
                 <button class="pc-key" onclick="addText('}')">}</button>
-                <button class="pc-key" onclick="addText('&quot;')">"</button>
-                <button class="pc-key" onclick="addText('+')">+</button>
-                <button class="pc-key" onclick="addText('=')">=</button>
             </div>
             <div class="pc-row">
+                <button class="pc-key" onclick="addText('<')"><</button>
+                <button class="pc-key" onclick="addText('>')">></button>
+                <button class="pc-key" onclick="addText('?')">?</button>
+                <button class="pc-key" onclick="addText(':')">:</button>
+                <button class="pc-key" onclick="addText(';')">;</button>
+                <button class="pc-key" onclick="addText('&quot;')">"</button>
+                <button class="pc-key" onclick="addText('\'')">'</button>
+                <button class="pc-key" onclick="addText('`')">`</button>
+                <button class="pc-key" onclick="addText('~')">~</button>
+                <button class="pc-key" onclick="addText('|')">|</button>
+                <button class="pc-key" onclick="addText('\\')">\</button>
+                <button class="pc-key" onclick="addText('_')">_</button>
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
                 <button class="pc-key" onclick="handleTab()">TAB</button>
@@ -218,14 +241,19 @@
         function updateBlinker() {
             bar.style.height = 'auto';
             bar.style.height = bar.scrollHeight + 'px';
+            
             const lines = bar.value.split('\n');
             const lastLine = lines[lines.length - 1];
+            
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
             context.font = "18px 'Cascadia Mono'";
             const lastLineWidth = context.measureText(lastLine).width;
+            
             blinker.style.left = lastLineWidth + "px";
-            blinker.style.top = (lines.length - 1) * 25.2 + 18 + "px";
+            // Uses a tighter line height calculation to stay exactly next to the characters
+            blinker.style.top = (lines.length - 1) * 21.6 + 18 + "px"; 
+            
             display.scrollTop = display.scrollHeight;
         }
 
