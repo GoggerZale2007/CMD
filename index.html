@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMD</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { box-sizing: border-box; }
+
+        body { 
+            background-color: #0c0c0c; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        #cmd-window {
+            width: 90%;
+            max-width: 900px;
+            background-color: #000;
+            border: 1px solid #333;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #display-screen {
+            height: 400px;
+            color: #cccccc;
+            padding: 20px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        #command-bar-container {
+            display: flex;
+            align-items: center;
+            background-color: #000;
+            border-top: 1px solid #222;
+            padding: 10px 20px;
+        }
+
+        #prefix {
+            color: #00ff00;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        #command-bar {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .system-header { color: #ffffff; font-weight: bold; }
+        .user-input-line { color: #888888; }
+        .error-code { color: #ff5555; font-weight: bold; }
+        .error-msg { color: #ff5555; margin-bottom: 8px; display: block; }
+        .output-text { color: #569cd6; }
+
+        #display-screen::-webkit-scrollbar { width: 8px; }
+        #display-screen::-webkit-scrollbar-track { background: #000; }
+        #display-screen::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="cmd-window">
+        <div id="display-screen">
+            <span class="system-header">Microsoft Windows [Version 10.0.22631.3007]</span><br>
+            <span class="system-header">(c) Microsoft Corporation. All rights reserved.</span><br><br>
+            Ready for input...<br>
+            <hr style="border: 0; border-top: 1px solid #222; margin: 10px 0;">
+        </div>
+
+        <div id="command-bar-container">
+            <span id="prefix">C:\Users\Admin></span>
+            <input type="text" id="command-bar" autofocus spellcheck="false" autocomplete="off">
+        </div>
+    </div>
+
+    <script>
+        const bar = document.getElementById('command-bar');
+        const screen = document.getElementById('display-screen');
+
+        function logToScreen(content, className = "") {
+            const div = document.createElement('div');
+            if (className) div.className = className;
+            div.innerHTML = content;
+            screen.appendChild(div);
+            screen.scrollTop = screen.scrollHeight;
+        }
+
+        window.print = function(value) {
+            logToScreen(value, "output-text");
+        };
+
+        bar.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                const input = bar.value.trim();
+                if (input === "") return;
+
+                if (input.toLowerCase() === "clear") {
+                    screen.innerHTML = "";
+                    bar.value = "";
+                    return;
+                }
+
+                try {
+                    eval(input);
+                    logToScreen("C:\\Users\\Admin> " + input, "user-input-line");
+                } catch (err) {
+                    logToScreen("C:\\Users\\Admin> " + input, "error-code");
+                    logToScreen("Syntax error!", "error-msg");
+                }
+
+                bar.value = "";
+            }
+        });
+
+        document.addEventListener('click', () => bar.focus());
+    </script>
+
+</body>
+</html>
