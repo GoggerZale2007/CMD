@@ -74,12 +74,18 @@
             <button class="pc-key" onclick="addText('CTRL')">CTRL</button>
             <button class="pc-key" onclick="addText('ALT')">ALT</button>
             <button class="pc-key" onclick="addText('TAB')">TAB</button>
+            <button class="pc-key" onclick="addText('ESC')">ESC</button>
+            <button class="pc-key" onclick="addText('(')">(</button>
+            <button class="pc-key" onclick="addText(')')">)</button>
             <button class="pc-key" onclick="addText('&quot;')">"</button>
             <button class="pc-key" onclick="addText('\'')">'</button>
             <button class="pc-key" onclick="addText('{')">{</button>
             <button class="pc-key" onclick="addText('}')">}</button>
             <button class="pc-key" onclick="addText('[')">[</button>
             <button class="pc-key" onclick="addText(']')">]</button>
+            <button class="pc-key" onclick="addText('<')"><</button>
+            <button class="pc-key" onclick="addText('>')">></button>
+            <button class="pc-key" onclick="addText('=')">=</button>
         </div>
 
         <div id="v-keyboard">
@@ -133,8 +139,6 @@
         let shiftActive = false;
 
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        // Detect if mobile browser is NOT in Desktop Mode
         const isNotDesktopMode = isMobile && window.innerWidth <= 768;
 
         if (isNotDesktopMode) {
@@ -146,7 +150,6 @@
         }
 
         function handleInteraction() {
-            // Only force fullscreen if mobile and NOT in desktop mode
             if (isNotDesktopMode && !document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
             }
