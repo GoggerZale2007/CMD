@@ -27,17 +27,16 @@
             flex-grow: 1; background: transparent; border: none; color: #fff;
             font-family: 'Fira Code', monospace; font-size: 16px; outline: none;
             resize: none; min-height: 40px; width: 100%;
-            caret-color: #fff; /* Standard solid white cursor */
+            caret-color: #fff;
         }
 
-        /* Virtual Keyboard (Hidden by default on PC) */
+        /* Virtual Keyboard (Hidden on PC) */
         #v-keyboard {
             background: #111; padding: 3px; border-top: 1px solid #333;
             display: none; flex-direction: column; gap: 2px;
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Show keyboard only on mobile */
         @media (max-width: 768px) {
             #v-keyboard { display: flex; }
         }
@@ -56,14 +55,14 @@
         .output-text { color: #fff; margin-bottom: 2px; font-size: 14px; }
     </style>
 </head>
-<body onclick="document.getElementById('command-bar').focus()">
+<body onclick="focusInput()">
 
     <div id="display-screen">
         <div id="text-output"></div>
     </div>
 
     <div id="input-area">
-        <textarea id="command-bar" placeholder="Enter code..." spellcheck="false" rows="1"></textarea>
+        <textarea id="command-bar" placeholder="Enter code..." spellcheck="false" rows="1" inputmode="none"></textarea>
     </div>
 
     <div id="v-keyboard">
@@ -117,6 +116,13 @@
         const screen = document.getElementById('text-output');
         const display = document.getElementById('display-screen');
 
+        // Detect if user is on mobile
+        const isMobile = window.innerWidth <= 768;
+
+        function focusInput() {
+            bar.focus();
+        }
+
         function logToScreen(content, className = "") {
             const div = document.createElement('div');
             if (className) div.className = className;
@@ -129,13 +135,11 @@
 
         function addText(txt) {
             bar.value += txt;
-            bar.focus();
             autoResize();
         }
 
         function backspace() {
             bar.value = bar.value.slice(0, -1);
-            bar.focus();
             autoResize();
         }
 
@@ -172,6 +176,13 @@
         }
 
         bar.addEventListener("input", autoResize);
+
+        // Physical Keyboard Support (for PC)
+        // If it's mobile, we remove 'readonly' so virtual keys work, 
+        // but 'inputmode' still blocks Gboard.
+        if (!isMobile) {
+            bar.removeAttribute('inputmode');
+        }
 
         bar.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
