@@ -26,28 +26,39 @@
             resize: none; min-height: 30px; width: 100%; caret-color: #fff;
         }
 
-        /* Full-Featured Compact Keyboard */
-        #v-keyboard {
-            background: #0a0a0a; padding: 2px; border-top: 1px solid #333;
-            display: none; flex-direction: column; gap: 3px;
+        /* Keyboard Container */
+        #keyboard-wrapper {
+            background: #171717; 
+            display: none; 
+            flex-direction: column;
             padding-bottom: env(safe-area-inset-bottom);
         }
+        @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
 
-        @media (max-width: 768px) { #v-keyboard { display: flex; } }
+        /* Termux/PC Style Bar */
+        #pc-bar {
+            display: flex; gap: 2px; padding: 5px; background: #000;
+            border-top: 1px solid #333; overflow-x: auto;
+        }
+        .pc-key {
+            background: #262626; color: #fff; border: none; padding: 8px 12px;
+            font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 45px;
+        }
 
-        .kb-row { display: flex; justify-content: center; gap: 2px; width: 100%; }
+        /* Gboard Style Keyboard */
+        #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
+        .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         
         .key {
-            background: #222; color: #eee; border: 1px solid #333;
-            padding: 10px 0; font-family: 'Fira Code'; font-size: 10px;
-            flex: 1; border-radius: 3px; cursor: pointer;
+            background: #333333; color: #eee; border: none;
+            padding: 12px 0; font-family: 'Fira Code'; font-size: 14px;
+            flex: 1; border-radius: 5px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
-        
-        .key:active { background: #444; }
-        .active-shift { background: #555 !important; border-color: #fff !important; }
-        .special-key { background: #1a1a1a; color: #569cd6; } /* Blueish for symbols/CTRL */
-        .run-key { flex: 2; background: #fff; color: #000; font-weight: bold; }
+        .key:active { background: #4a4a4a; }
+        .special-key { background: #262626; flex: 1.5; font-size: 11px; }
+        .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
 
         .error-msg { color: #ff5555; font-weight: bold; }
         .output-text { color: #fff; margin-bottom: 2px; font-size: 13px; }
@@ -63,62 +74,61 @@
         <textarea id="command-bar" placeholder="Enter code..." spellcheck="false" rows="1" inputmode="none"></textarea>
     </div>
 
-    <div id="v-keyboard">
-        <div class="kb-row">
-            <button class="key special-key" onclick="addText('1')">1</button>
-            <button class="key special-key" onclick="addText('2')">2</button>
-            <button class="key special-key" onclick="addText('3')">3</button>
-            <button class="key special-key" onclick="addText('4')">4</button>
-            <button class="key special-key" onclick="addText('5')">5</button>
-            <button class="key special-key" onclick="addText('6')">6</button>
-            <button class="key special-key" onclick="addText('7')">7</button>
-            <button class="key special-key" onclick="addText('8')">8</button>
-            <button class="key special-key" onclick="addText('9')">9</button>
-            <button class="key special-key" onclick="addText('0')">0</button>
+    <div id="keyboard-wrapper">
+        <div id="pc-bar">
+            <button class="pc-key" onclick="addText('CTRL')">CTRL</button>
+            <button class="pc-key" onclick="addText('ALT')">ALT</button>
+            <button class="pc-key" onclick="addText('TAB')">TAB</button>
+            <button class="pc-key" onclick="addText('ESC')">ESC</button>
+            <button class="pc-key" onclick="addText('{')">{</button>
+            <button class="pc-key" onclick="addText('}')">}</button>
+            <button class="pc-key" onclick="addText('[')">[</button>
+            <button class="pc-key" onclick="addText(']')">]</button>
+            <button class="pc-key" onclick="addText('<')"><</button>
+            <button class="pc-key" onclick="addText('>')">></button>
         </div>
-        <div class="kb-row">
-            <button class="key" onclick="addText('Q')">Q</button>
-            <button class="key" onclick="addText('W')">W</button>
-            <button class="key" onclick="addText('E')">E</button>
-            <button class="key" onclick="addText('R')">R</button>
-            <button class="key" onclick="addText('T')">T</button>
-            <button class="key" onclick="addText('Y')">Y</button>
-            <button class="key" onclick="addText('U')">U</button>
-            <button class="key" onclick="addText('I')">I</button>
-            <button class="key" onclick="addText('O')">O</button>
-            <button class="key" onclick="addText('P')">P</button>
-        </div>
-        <div class="kb-row">
-            <button class="key" onclick="addText('A')">A</button>
-            <button class="key" onclick="addText('S')">S</button>
-            <button class="key" onclick="addText('D')">D</button>
-            <button class="key" onclick="addText('F')">F</button>
-            <button class="key" onclick="addText('G')">G</button>
-            <button class="key" onclick="addText('H')">H</button>
-            <button class="key" onclick="addText('J')">J</button>
-            <button class="key" onclick="addText('K')">K</button>
-            <button class="key" onclick="addText('L')">L</button>
-            <button class="key special-key" onclick="addText('=')">=</button>
-        </div>
-        <div class="kb-row">
-            <button id="shift-key" class="key special-key" onclick="toggleShift()" style="flex:1.2">SHIFT</button>
-            <button class="key" onclick="addText('Z')">Z</button>
-            <button class="key" onclick="addText('X')">X</button>
-            <button class="key" onclick="addText('C')">C</button>
-            <button class="key" onclick="addText('V')">V</button>
-            <button class="key" onclick="addText('B')">B</button>
-            <button class="key" onclick="addText('N')">N</button>
-            <button class="key" onclick="addText('M')">M</button>
-            <button class="key special-key" onclick="addText('[')">[</button>
-            <button class="key special-key" onclick="addText(']')">]</button>
-        </div>
-        <div class="kb-row">
-            <button class="key special-key" onclick="addText('(')">(</button>
-            <button class="key special-key" onclick="addText(')')">)</button>
-            <button class="key" style="flex:2.5" onclick="addText(' ')">SPACE</button>
-            <button class="key special-key" onclick="addText('.')">.</button>
-            <button class="key special-key" onclick="backspace()">DEL</button>
-            <button class="key run-key" onclick="handleRun()">RUN</button>
+
+        <div id="v-keyboard">
+            <div class="kb-row">
+                <button class="key" onclick="addText('Q')">Q</button>
+                <button class="key" onclick="addText('W')">W</button>
+                <button class="key" onclick="addText('E')">E</button>
+                <button class="key" onclick="addText('R')">R</button>
+                <button class="key" onclick="addText('T')">T</button>
+                <button class="key" onclick="addText('Y')">Y</button>
+                <button class="key" onclick="addText('U')">U</button>
+                <button class="key" onclick="addText('I')">I</button>
+                <button class="key" onclick="addText('O')">O</button>
+                <button class="key" onclick="addText('P')">P</button>
+            </div>
+            <div class="kb-row">
+                <button class="key" onclick="addText('A')">A</button>
+                <button class="key" onclick="addText('S')">S</button>
+                <button class="key" onclick="addText('D')">D</button>
+                <button class="key" onclick="addText('F')">F</button>
+                <button class="key" onclick="addText('G')">G</button>
+                <button class="key" onclick="addText('H')">H</button>
+                <button class="key" onclick="addText('J')">J</button>
+                <button class="key" onclick="addText('K')">K</button>
+                <button class="key" onclick="addText('L')">L</button>
+            </div>
+            <div class="kb-row">
+                <button id="shift-key" class="key special-key" onclick="toggleShift()">SHIFT</button>
+                <button class="key" onclick="addText('Z')">Z</button>
+                <button class="key" onclick="addText('X')">X</button>
+                <button class="key" onclick="addText('C')">C</button>
+                <button class="key" onclick="addText('V')">V</button>
+                <button class="key" onclick="addText('B')">B</button>
+                <button class="key" onclick="addText('N')">N</button>
+                <button class="key" onclick="addText('M')">M</button>
+                <button class="key special-key" onclick="backspace()">DEL</button>
+            </div>
+            <div class="kb-row">
+                <button class="key special-key" onclick="addText('.')">.</button>
+                <button class="key" style="flex:4" onclick="addText(' ')">SPACE</button>
+                <button class="key special-key" onclick="addText('/')">/</button>
+                <button class="key run-key" onclick="handleRun()">RUN</button>
+            </div>
         </div>
     </div>
 
@@ -147,7 +157,9 @@
 
         function toggleShift() {
             shiftActive = !shiftActive;
-            document.getElementById('shift-key').classList.toggle('active-shift', shiftActive);
+            const btn = document.getElementById('shift-key');
+            btn.style.background = shiftActive ? '#fff' : '#262626';
+            btn.style.color = shiftActive ? '#000' : '#eee';
         }
 
         function addText(txt) {
