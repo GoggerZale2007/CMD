@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CMD</title>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; touch-action: manipulation; }
         body { 
             background-color: #000; display: flex; flex-direction: column;
             height: 100vh; margin: 0; font-family: 'Fira Code', monospace; color: #fff;
@@ -15,53 +15,55 @@
         }
 
         #display-screen {
-            flex-grow: 1; padding: 15px; overflow-y: auto; position: relative;
+            flex-grow: 1; padding: 10px; overflow-y: auto;
         }
-        #text-output { position: relative; z-index: 2; }
 
         #input-area {
             display: flex; align-items: flex-start; background-color: #000;
-            padding: 10px 15px; border-top: 1px solid #1a1a1a;
+            padding: 10px; border-top: 1px solid #1a1a1a;
         }
+
         #command-bar {
             flex-grow: 1; background: transparent; border: none; color: #fff;
             font-family: 'Fira Code', monospace; font-size: 16px; outline: none;
-            resize: none; caret-color: transparent; min-height: 24px;
+            resize: none; min-height: 40px; width: 100%;
+            caret-color: #fff; /* Standard solid white cursor */
         }
-        #cursor {
-            width: 10px; height: 3px; background-color: #fff;
-            animation: blink 0.8s infinite; margin-top: 15px; margin-left: -5px;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
 
-        /* QWERTY Virtual Keyboard */
+        /* Virtual Keyboard (Hidden by default on PC) */
         #v-keyboard {
-            background: #111; padding: 5px; border-top: 1px solid #333;
-            display: flex; flex-direction: column; gap: 4px;
+            background: #111; padding: 3px; border-top: 1px solid #333;
+            display: none; flex-direction: column; gap: 2px;
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .kb-row { display: flex; justify-content: center; gap: 3px; }
+
+        /* Show keyboard only on mobile */
+        @media (max-width: 768px) {
+            #v-keyboard { display: flex; }
+        }
+
+        .kb-row { display: flex; justify-content: center; gap: 2px; }
         .key {
             background: #222; color: #eee; border: 1px solid #333;
-            padding: 10px 0; font-family: 'Fira Code'; font-size: 11px;
-            flex: 1; border-radius: 3px; cursor: pointer; text-align: center;
+            padding: 12px 0; font-family: 'Fira Code'; font-size: 11px;
+            flex: 1; border-radius: 3px; cursor: pointer;
         }
         .key:active { background: #444; }
         .wide-key { flex: 1.5; background: #333; }
         .run-key { flex: 2; background: #fff; color: #000; font-weight: bold; }
 
         .error-msg { color: #ff5555; font-weight: bold; }
-        .output-text { color: #fff; margin-bottom: 2px; }
+        .output-text { color: #fff; margin-bottom: 2px; font-size: 14px; }
     </style>
 </head>
-<body>
+<body onclick="document.getElementById('command-bar').focus()">
 
     <div id="display-screen">
         <div id="text-output"></div>
     </div>
 
     <div id="input-area">
-        <textarea id="command-bar" placeholder="" spellcheck="false" rows="1"></textarea>
-        <div id="cursor"></div>
+        <textarea id="command-bar" placeholder="Enter code..." spellcheck="false" rows="1"></textarea>
     </div>
 
     <div id="v-keyboard">
@@ -113,13 +115,14 @@
     <script>
         const bar = document.getElementById('command-bar');
         const screen = document.getElementById('text-output');
+        const display = document.getElementById('display-screen');
 
         function logToScreen(content, className = "") {
             const div = document.createElement('div');
             if (className) div.className = className;
             div.innerHTML = content;
             screen.appendChild(div);
-            document.getElementById('display-screen').scrollTop = screen.scrollHeight;
+            display.scrollTop = display.scrollHeight;
         }
 
         window.print = function(val) { logToScreen(val, "output-text"); };
@@ -127,12 +130,18 @@
         function addText(txt) {
             bar.value += txt;
             bar.focus();
-            bar.dispatchEvent(new Event('input'));
+            autoResize();
         }
 
         function backspace() {
             bar.value = bar.value.slice(0, -1);
             bar.focus();
+            autoResize();
+        }
+
+        function autoResize() {
+            bar.style.height = 'auto';
+            bar.style.height = bar.scrollHeight + 'px';
         }
 
         async function execute() {
@@ -149,22 +158,26 @@
                     })
                 });
                 const data = await res.json();
-                if (data.run.stdout) logToScreen(data.run.stdout, "output-text");
-                if (data.run.stderr) logToScreen("Syntax error!", "error-msg");
+                
+                if (data.run.stderr) {
+                    logToScreen("TypeError", "error-msg");
+                } else if (data.run.stdout) {
+                    logToScreen(data.run.stdout, "output-text");
+                }
             } catch (err) {
                 logToScreen("TypeError", "error-msg");
             }
             bar.value = "";
-            bar.style.height = "24px";
+            bar.style.height = "40px";
         }
 
-        bar.addEventListener("input", function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
+        bar.addEventListener("input", autoResize);
 
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON') bar.focus();
+        bar.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                execute();
+            }
         });
     </script>
 </body>
