@@ -17,64 +17,95 @@
             height: 100vh;
             margin: 0;
             font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
         }
 
         #cmd-window {
             width: 95%;
+            height: 90vh;
             max-width: 900px;
             background-color: #000;
             border: 1px solid #333;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
+        /* Top Right Button */
+        #newline-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #222;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            z-index: 10;
+        }
+
+        #newline-btn:active { background: #444; }
+
         #display-screen {
-            height: 450px;
-            color: #ffffff; /* Default text color is white */
+            flex-grow: 1;
+            color: #ffffff;
             padding: 20px;
             overflow-y: auto;
             white-space: pre-wrap;
             font-size: 15px;
-            line-height: 1.5;
         }
 
         #command-bar-container {
             display: flex;
-            align-items: center;
             background-color: #000;
             border-top: 1px solid #222;
-            padding: 10px 20px;
+            padding: 10px;
         }
 
         #command-bar {
             flex-grow: 1;
             background: transparent;
             border: none;
-            color: #ffffff; /* Typing color is white */
+            color: #ffffff;
             font-family: 'JetBrains Mono', monospace;
             font-size: 16px;
             outline: none;
+            resize: none;
+            height: 50px;
         }
 
-        /* Syntax Coloring */
-        .user-input-line { color: #ffffff; opacity: 0.8; } /* White for valid code history */
-        .error-code { color: #ff5555; font-weight: bold; } /* Red for wrong code */
-        .error-msg { color: #ff5555; margin-bottom: 8px; display: block; } /* Red error text */
-        .output-text { color: #ffffff; } /* White for printed words */
+        #run-btn {
+            background: #ffffff;
+            color: #000;
+            border: none;
+            padding: 0 20px;
+            margin-left: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
 
-        /* Scrollbar styling */
-        #display-screen::-webkit-scrollbar { width: 8px; }
-        #display-screen::-webkit-scrollbar-track { background: #000; }
+        .user-input-line { color: #ffffff; opacity: 0.7; }
+        .error-code { color: #ff5555; font-weight: bold; }
+        .error-msg { color: #ff5555; margin-bottom: 8px; display: block; }
+        .output-text { color: #ffffff; }
+
+        #display-screen::-webkit-scrollbar { width: 5px; }
         #display-screen::-webkit-scrollbar-thumb { background: #333; }
     </style>
 </head>
 <body>
 
     <div id="cmd-window">
+        <button id="newline-btn" onclick="addNewLine()">Create New Line</button>
+        
         <div id="display-screen"></div>
 
         <div id="command-bar-container">
-            <input type="text" id="command-bar" autofocus spellcheck="false" autocomplete="off">
+            <textarea id="command-bar" placeholder="Type code..." spellcheck="false"></textarea>
+            <button id="run-btn" onclick="execute()">RUN</button>
         </div>
     </div>
 
@@ -90,35 +121,44 @@
             screen.scrollTop = screen.scrollHeight;
         }
 
-        // Global print function
         window.print = function(value) {
             logToScreen(value, "output-text");
         };
 
-        bar.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                const input = bar.value;
-                if (input.trim() === "") return;
+        // Inserts a new line into the textarea
+        function addNewLine() {
+            bar.value += "\n";
+            bar.focus();
+            bar.style.height = (bar.scrollHeight) + "px";
+        }
 
-                try {
-                    // Try running the code
-                    eval(input);
-                    // If it works, keep it white in history
-                    logToScreen(input, "user-input-line");
-                } catch (err) {
-                    // Syntax Coloring: Wrong code turns RED
-                    logToScreen(input, "error-code");
-                    // Show "Syntax error!" word below in RED
-                    logToScreen("Syntax error!", "error-msg");
-                }
+        function execute() {
+            const input = bar.value;
+            if (input.trim() === "") return;
 
-                bar.value = "";
+            try {
+                eval(input);
+                logToScreen(input, "user-input-line");
+            } catch (err) {
+                logToScreen(input, "error-code");
+                logToScreen("Syntax error", "error-msg");
             }
+
+            bar.value = "";
+            bar.style.height = "50px";
+        }
+
+        // Auto-resize typing area
+        bar.addEventListener("input", function() {
+            this.style.height = "auto";
+            this.style.height = (this.scrollHeight) + "px";
         });
 
-        // Keeps the cursor active
-        document.addEventListener('click', () => bar.focus());
+        // Click focus
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') bar.focus();
+        });
     </script>
 
 </body>
-</html>
+</herror
