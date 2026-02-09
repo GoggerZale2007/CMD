@@ -29,20 +29,11 @@
         #command-bar {
             flex-grow: 1; background: transparent; border: none; color: #fff;
             font-family: 'Cascadia Mono', monospace; font-size: 18px; outline: none;
-            resize: none; width: 100%; caret-color: transparent; 
+            resize: none; width: 100%; 
+            caret-color: #fff; /* Native cursor enabled */
             padding: 0; margin: 0; line-height: 1.2; 
             white-space: pre-wrap; word-break: break-all;
         }
-
-        #blinker {
-            display: inline-block; width: 12px; height: 3px;
-            background-color: #fff; 
-            animation: blink-instant 1s steps(2, start) infinite;
-            position: absolute; pointer-events: none;
-            /* Perfectly aligned with the baseline of 18px Cascadia Mono */
-            margin-top: 18px; 
-        }
-        @keyframes blink-instant { to { visibility: hidden; } }
 
         .error-line { background-color: #441111; display: inline-block; width: 100%; }
         .error-msg { color: #ff5555; font-weight: bold; margin-top: 4px; font-size: 14px; }
@@ -73,7 +64,6 @@
         <span id="prompt-symbol">></span>
         <div id="input-container">
             <textarea id="command-bar" spellcheck="false" rows="1" inputmode="none"></textarea>
-            <div id="blinker"></div>
         </div>
     </div>
 
@@ -176,7 +166,6 @@
 
     <script>
         const bar = document.getElementById('command-bar');
-        const blinker = document.getElementById('blinker');
         const screen = document.getElementById('text-output');
         const display = document.getElementById('display-screen');
         const kbWrapper = document.getElementById('keyboard-wrapper');
@@ -218,13 +207,13 @@
             }
         }
 
-        function handleTab() { bar.value += "    "; updateBlinker(); }
-        function handleEsc() { bar.value = ""; updateBlinker(); }
+        function handleTab() { bar.value += "    "; autoResize(); }
+        function handleEsc() { bar.value = ""; autoResize(); }
 
         function addText(txt) {
             bar.value += shiftActive ? txt.toUpperCase() : txt.toLowerCase();
             if (shiftActive) toggleShift(); 
-            updateBlinker();
+            autoResize();
         }
 
         function backspace() {
@@ -235,29 +224,19 @@
                 return;
             }
             bar.value = bar.value.slice(0, -1);
-            updateBlinker();
+            autoResize();
         }
 
-        function updateBlinker() {
+        function autoResize() {
             bar.style.height = 'auto';
             bar.style.height = bar.scrollHeight + 'px';
-            const lines = bar.value.split('\n');
-            const lastLine = lines[lines.length - 1];
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-            context.font = "18px 'Cascadia Mono'";
-            const lastLineWidth = context.measureText(lastLine).width;
-            
-            blinker.style.left = lastLineWidth + "px";
-            // Uses a fixed 21.6px multiplier for 18px text at 1.2 line-height
-            blinker.style.top = (lines.length - 1) * 21.6 + "px"; 
             display.scrollTop = display.scrollHeight;
         }
 
         function handleRun() {
             if (shiftActive) {
                 bar.value += "\n";
-                updateBlinker();
+                autoResize();
                 toggleShift();
             } else {
                 execute();
@@ -308,11 +287,10 @@
                 }
             }
             bar.value = "";
-            updateBlinker();
+            autoResize();
         }
 
-        bar.addEventListener("input", updateBlinker);
-        window.onload = updateBlinker;
+        bar.addEventListener("input", autoResize);
     </script>
 </body>
 </html>
