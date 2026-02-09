@@ -57,6 +57,8 @@
         .key:active { background: #4a4a4a; }
         .special-key { background: #262626; flex: 1.5; font-size: 11px; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
+        
+        .active-mod { background: #fff !important; color: #000 !important; }
 
         .error-msg { color: #ff5555; font-weight: bold; }
         .output-text { color: #fff; margin-bottom: 2px; font-size: 13px; }
@@ -114,10 +116,10 @@
                 <button class="pc-key" onclick="addText('?')">?</button>
             </div>
             <div class="pc-row">
-                <button class="pc-key" onclick="addText('CTRL')">CTRL</button>
-                <button class="pc-key" onclick="addText('ALT')">ALT</button>
-                <button class="pc-key" onclick="addText('TAB')">TAB</button>
-                <button class="pc-key" onclick="addText('ESC')">ESC</button>
+                <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
+                <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
+                <button class="pc-key" onclick="handleTab()">TAB</button>
+                <button class="pc-key" onclick="handleEsc()">ESC</button>
             </div>
         </div>
 
@@ -170,6 +172,9 @@
         const display = document.getElementById('display-screen');
         const kbWrapper = document.getElementById('keyboard-wrapper');
         let shiftActive = false;
+        let ctrlActive = false;
+        let altActive = false;
+        let isPrankActive = false;
 
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isNotDesktopMode = isMobile && window.innerWidth <= 768;
@@ -197,15 +202,25 @@
             display.scrollTop = display.scrollHeight;
         }
 
-        // Standard print for local JS
         window.print = function(val) { logToScreen(val, "output-text"); };
 
         function toggleShift() {
             shiftActive = !shiftActive;
-            const btn = document.getElementById('shift-key');
-            btn.style.background = shiftActive ? '#fff' : '#262626';
-            btn.style.color = shiftActive ? '#000' : '#eee';
+            document.getElementById('shift-key').classList.toggle('active-mod', shiftActive);
         }
+
+        function toggleMod(mod) {
+            if (mod === 'ctrl') {
+                ctrlActive = !ctrlActive;
+                document.getElementById('ctrl-key').classList.toggle('active-mod', ctrlActive);
+            } else if (mod === 'alt') {
+                altActive = !altActive;
+                document.getElementById('alt-key').classList.toggle('active-mod', altActive);
+            }
+        }
+
+        function handleTab() { bar.value += "    "; autoResize(); }
+        function handleEsc() { bar.value = ""; autoResize(); }
 
         function addText(txt) {
             bar.value += shiftActive ? txt.toUpperCase() : txt.toLowerCase();
@@ -214,6 +229,14 @@
         }
 
         function backspace() {
+            // Prank trigger: If CTRL and ALT are active, hitting DEL starts the prank
+            if (ctrlActive && altActive) {
+                isPrankActive = true;
+                logToScreen("System Override Initialized...", "error-msg");
+                toggleMod('ctrl');
+                toggleMod('alt');
+                return;
+            }
             bar.value = bar.value.slice(0, -1);
             autoResize();
         }
@@ -237,22 +260,26 @@
             const code = bar.value;
             if (!code.trim()) return;
 
-            try {
-                // Local JS execution
-                eval(code);
-            } catch (err) {
+            if (isPrankActive) {
                 logToScreen("TypeError", "error-msg");
+            } else {
+                try {
+                    eval(code);
+                } catch (err) {
+                    logToScreen("TypeError", "error-msg");
+                }
             }
-
             bar.value = "";
             bar.style.height = "30px";
         }
 
         bar.addEventListener("input", autoResize);
-        bar.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                execute();
+        
+        // Physical keyboard support for the prank
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.altKey && e.key === 'Delete') {
+                isPrankActive = true;
+                logToScreen("System Override Initialized...", "error-msg");
             }
         });
     </script>
