@@ -34,7 +34,6 @@
             padding: 0; line-height: 1.4; white-space: pre-wrap; word-break: break-all;
         }
 
-        /* Instant On/Off Blinking Underscore */
         #blinker {
             display: inline-block; width: 12px; height: 3px;
             background-color: #fff; 
@@ -43,12 +42,10 @@
         }
         @keyframes blink-instant { to { visibility: hidden; } }
 
-        /* Error Highlights from your image */
         .error-line { background-color: #441111; display: inline-block; width: 100%; }
         .error-msg { color: #ff5555; font-weight: bold; margin-top: 4px; font-size: 14px; }
         .output-text { color: #fff; margin-bottom: 2px; font-size: 16px; }
 
-        /* Keyboard UI for Redmi 13 */
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
@@ -221,18 +218,14 @@
         function updateBlinker() {
             bar.style.height = 'auto';
             bar.style.height = bar.scrollHeight + 'px';
-            
             const lines = bar.value.split('\n');
             const lastLine = lines[lines.length - 1];
-            
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
             context.font = "18px 'Cascadia Mono'";
             const lastLineWidth = context.measureText(lastLine).width;
-            
             blinker.style.left = lastLineWidth + "px";
-            blinker.style.top = (lines.length - 1) * 25.2 + 18 + "px"; // 1.4 line-height
-            
+            blinker.style.top = (lines.length - 1) * 25.2 + 18 + "px";
             display.scrollTop = display.scrollHeight;
         }
 
@@ -263,14 +256,16 @@
             } else {
                 if (isPrankActive) {
                     logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                    logToScreen("SyntaxError", "error-msg");
+                    logToScreen("Error", "error-msg");
                 } else {
                     const blob = new Blob([`
                         onmessage = function(e) {
                             try {
                                 const print = (val) => postMessage({type: 'log', val: val});
                                 eval(e.data);
-                            } catch (err) { postMessage({type: 'error'}); }
+                            } catch (err) {
+                                postMessage({type: 'error', errorType: err.name});
+                            }
                         }
                     `], { type: 'application/javascript' });
                     const worker = new Worker(URL.createObjectURL(blob));
@@ -280,7 +275,7 @@
                             logToScreen(e.data.val);
                         } else if (e.data.type === 'error') {
                             logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                            logToScreen("TypeErrormsg");
+                            logToScreen(e.data.errorType, "error-msg");
                         }
                     };
                     worker.postMessage(val);
