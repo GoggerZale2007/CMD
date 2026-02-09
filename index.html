@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         * { box-sizing: border-box; }
@@ -15,8 +16,7 @@
             align-items: center; 
             height: 100vh;
             margin: 0;
-            /* Font set to Consolas */
-            font-family: "Consolas", "Courier New", monospace;
+            font-family: 'Fira Code', monospace;
         }
 
         #cmd-window {
@@ -24,7 +24,7 @@
             height: 500px;
             background-color: #000;
             border: 1px solid #333;
-            display: flex;
+            display: flex; 
             flex-direction: column;
             position: relative;
         }
@@ -39,7 +39,7 @@
             padding: 5px 10px;
             font-size: 11px;
             cursor: pointer;
-            font-family: "Consolas", monospace;
+            font-family: 'Fira Code', monospace;
             z-index: 10;
         }
 
@@ -50,7 +50,7 @@
             padding-top: 45px;
             overflow-y: auto;
             white-space: pre-wrap;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         #command-bar-container {
@@ -65,7 +65,7 @@
             background: transparent;
             border: none;
             color: #ffffff;
-            font-family: "Consolas", monospace;
+            font-family: 'Fira Code', monospace;
             font-size: 16px;
             outline: none;
             resize: none;
@@ -80,34 +80,21 @@
             margin-left: 10px;
             font-weight: bold;
             cursor: pointer;
-            font-family: "Consolas", monospace;
+            font-family: 'Fira Code', monospace;
         }
 
-        .error-msg { 
-            color: #ff5555; 
-            margin-bottom: 8px; 
-            display: block; 
-            font-weight: bold; 
-        }
-
-        .output-text { 
-            color: #ffffff; 
-            margin-bottom: 4px; 
-        }
-
-        #display-screen::-webkit-scrollbar { width: 4px; }
-        #display-screen::-webkit-scrollbar-thumb { background: #333; }
+        .error-msg { color: #ff5555; font-weight: bold; margin-bottom: 8px; }
+        .output-text { color: #ffffff; margin-bottom: 4px; }
+        .bot-reply { color: #00ff00; font-style: italic; margin-bottom: 8px; } /* Bot talks in Green */
     </style>
 </head>
 <body>
 
     <div id="cmd-window">
         <button id="newline-btn" onclick="addNewLine()">Create New Line</button>
-        
         <div id="display-screen"></div>
-
         <div id="command-bar-container">
-            <textarea id="command-bar" placeholder="Code here..." spellcheck="false"></textarea>
+            <textarea id="command-bar" placeholder="Enter command..." spellcheck="false"></textarea>
             <button id="run-btn" onclick="execute()">RUN</button>
         </div>
     </div>
@@ -124,7 +111,6 @@
             screen.scrollTop = screen.scrollHeight;
         }
 
-        // Only shows output
         window.print = function(value) {
             logToScreen(value, "output-text");
         };
@@ -135,15 +121,31 @@
         }
 
         function execute() {
-            const input = bar.value;
-            if (input.trim() === "") return;
+            const input = bar.value.toLowerCase().trim();
+            if (input === "") return;
 
+            // --- TALK BACK FEATURE ---
+            if (input.includes("fuck")) {
+                logToScreen("Bot: Hey! Watch your language.", "bot-reply");
+                bar.value = "";
+                return;
+            }
+            if (input.includes("hello")) {
+                logToScreen("Bot: Hello there! What are we coding today?", "bot-reply");
+                bar.value = "";
+                return;
+            }
+            if (input.includes("roblox")) {
+                logToScreen("Bot: Project Smash or Nico's Nextbots?", "bot-reply");
+                bar.value = "";
+                return;
+            }
+
+            // --- NORMAL EXECUTION ---
             try {
-                eval(input);
-                // Input code is NOT shown on screen
+                eval(bar.value); 
             } catch (err) {
-                // Only "Syntax error!" is shown in red
-                logToScreen("TypeError", "error-msg");
+                logToScreen("Syntax error!", "error-msg");
             }
 
             bar.value = "";
