@@ -22,7 +22,6 @@
             font-size: 16px; min-height: 50px;
         }
 
-        /* The Prompt Styling */
         #prompt-symbol { color: #fff; margin-right: 8px; flex-shrink: 0; }
         
         #command-bar {
@@ -39,7 +38,6 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* Keyboard Styles */
         #keyboard-wrapper {
             background: #171717; display: none; flex-direction: column;
             padding-bottom: env(safe-area-inset-bottom);
@@ -154,7 +152,8 @@
         const screen = document.getElementById('text-output');
         const display = document.getElementById('display-screen');
         const kbWrapper = document.getElementById('keyboard-wrapper');
-        let shiftActive = false, ctrlActive = false, altActive = false, isPrankActive = false;
+        let shiftActive = false, ctrlActive = false, altActive = false;
+        let isPrankActive = false, waitingForConfirm = false;
 
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isNotDesktopMode = isMobile && window.innerWidth <= 768;
@@ -162,8 +161,6 @@
         if (isNotDesktopMode) {
             kbWrapper.style.display = 'flex';
             bar.setAttribute('inputmode', 'none');
-        } else {
-            kbWrapper.style.display = 'none';
         }
 
         function handleInteraction() {
@@ -207,8 +204,8 @@
 
         function backspace() {
             if (ctrlActive && altActive) {
-                isPrankActive = true;
-                logToScreen("System Override Initialized...", "error-msg");
+                waitingForConfirm = true;
+                logToScreen("Are you sure you want to delete the coding system? Y/N", "error-msg");
                 toggleMod('ctrl'); toggleMod('alt');
                 return;
             }
@@ -232,10 +229,24 @@
         }
 
         function execute() {
-            const code = bar.value;
-            if (!code.trim()) return;
-            logToScreen("> " + code);
+            const code = bar.value.trim().toUpperCase();
+            if (!code) return;
 
+            if (waitingForConfirm) {
+                logToScreen("> " + code);
+                if (code === "Y") {
+                    logToScreen("Prompt received");
+                    isPrankActive = true;
+                } else if (code === "N") {
+                    logToScreen("Prompt received");
+                }
+                waitingForConfirm = false;
+                bar.value = "";
+                bar.style.height = "24px";
+                return;
+            }
+
+            logToScreen("> " + bar.value);
             if (isPrankActive) {
                 logToScreen("TypeError", "error-msg");
             } else {
@@ -252,7 +263,7 @@
                     if (e.data.type === 'log') logToScreen(e.data.val);
                     else if (e.data.type === 'error') logToScreen("TypeError", "error-msg");
                 };
-                worker.postMessage(code);
+                worker.postMessage(bar.value);
                 setTimeout(() => worker.terminate(), 2000);
             }
             bar.value = "";
