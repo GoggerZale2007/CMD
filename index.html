@@ -14,7 +14,7 @@
             overflow: hidden;
         }
 
-        #display-screen { flex-grow: 1; padding: 10px; overflow-y: auto; }
+        #display-screen { flex-grow: 1; padding: 15px; overflow-y: auto; }
         
         #input-area {
             display: flex; align-items: flex-start; background-color: #000;
@@ -29,28 +29,27 @@
         #command-bar {
             flex-grow: 1; background: transparent; border: none; color: #fff;
             font-family: 'Cascadia Mono', monospace; font-size: 18px; outline: none;
-            resize: none; width: 100%; 
-            caret-color: #fff; /* Native cursor enabled */
+            resize: none; width: 100%; caret-color: #fff;
             padding: 0; margin: 0; line-height: 1.2; 
             white-space: pre-wrap; word-break: break-all;
         }
 
         .error-line { background-color: #441111; display: inline-block; width: 100%; }
         .error-msg { color: #ff5555; font-weight: bold; margin-top: 4px; font-size: 14px; }
-        .output-text { color: #fff; margin-bottom: 2px; font-size: 16px; }
+        
+        .output-text { color: #fff; margin-bottom: 5px; font-size: 16px; white-space: pre-wrap; }
+        .output-img { max-width: 100%; border-radius: 4px; margin: 10px 0; border: 1px solid #333; }
+
+        /* Support for potential coded animations */
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 2s linear infinite; }
 
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
-        
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
         .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 5px; }
         .pc-key { background: #262626; color: #fff; border: none; padding: 10px 12px; font-size: 12px; font-family: 'Cascadia Mono'; border-radius: 3px; min-width: 42px; }
-
-        #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
-        .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Cascadia Mono'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
-        .key:active { background: #4a4a4a; }
-        .active-mod { background: #fff !important; color: #000 !important; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
     </style>
 </head>
@@ -84,35 +83,28 @@
                 <button class="pc-key" onclick="addText('-')">-</button>
                 <button class="pc-key" onclick="addText('*')">*</button>
                 <button class="pc-key" onclick="addText('/')">/</button>
-                <button class="pc-key" onclick="addText('=')">=</button>
             </div>
             <div class="pc-row">
                 <button class="pc-key" onclick="addText('!')">!</button>
                 <button class="pc-key" onclick="addText('@')">@</button>
                 <button class="pc-key" onclick="addText('#')">#</button>
                 <button class="pc-key" onclick="addText('$')">$</button>
-                <button class="pc-key" onclick="addText('%')">%</button>
-                <button class="pc-key" onclick="addText('^')">^</button>
-                <button class="pc-key" onclick="addText('&')">&</button>
                 <button class="pc-key" onclick="addText('(')">(</button>
                 <button class="pc-key" onclick="addText(')')">)</button>
                 <button class="pc-key" onclick="addText('[')">[</button>
                 <button class="pc-key" onclick="addText(']')">]</button>
                 <button class="pc-key" onclick="addText('{')">{</button>
                 <button class="pc-key" onclick="addText('}')">}</button>
+                <button class="pc-key" onclick="addText('=')">=</button>
             </div>
             <div class="pc-row">
                 <button class="pc-key" onclick="addText('<')"><</button>
                 <button class="pc-key" onclick="addText('>')">></button>
-                <button class="pc-key" onclick="addText('?')">?</button>
                 <button class="pc-key" onclick="addText(':')">:</button>
-                <button class="pc-key" onclick="addText(';')">;</button>
                 <button class="pc-key" onclick="addText('&quot;')">"</button>
                 <button class="pc-key" onclick="addText('\'')">'</button>
                 <button class="pc-key" onclick="addText('`')">`</button>
-                <button class="pc-key" onclick="addText('~')">~</button>
                 <button class="pc-key" onclick="addText('|')">|</button>
-                <button class="pc-key" onclick="addText('\\')">\</button>
                 <button class="pc-key" onclick="addText('_')">_</button>
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
@@ -186,8 +178,20 @@
 
         function logToScreen(content, className = "") {
             const div = document.createElement('div');
-            div.className = className || "output-text";
-            div.innerHTML = content;
+            // Check for image URL or Base64 string
+            const imgRegex = /\.(jpeg|jpg|gif|png|webp|svg)$|data:image\//i;
+            
+            if (imgRegex.test(String(content).trim())) {
+                const img = document.createElement('img');
+                img.src = content.trim();
+                img.className = "output-img";
+                // If it's a gif or specific code indicates animation, you could add classes here
+                div.appendChild(img);
+            } else {
+                div.className = className || "output-text";
+                div.innerHTML = content;
+            }
+            
             screen.appendChild(div);
             display.scrollTop = display.scrollHeight;
         }
@@ -265,25 +269,29 @@
                     const blob = new Blob([`
                         onmessage = function(e) {
                             try {
-                                const print = (val) => postMessage({type: 'log', val: val});
-                                eval(e.data);
+                                // Define the print() command for the user
+                                const print = (content) => postMessage({type: 'log', val: content});
+                                
+                                const result = eval(e.data);
+                                if (result !== undefined) postMessage({type: 'log', val: result});
                             } catch (err) {
                                 postMessage({type: 'error', errorType: err.name});
                             }
                         }
                     `], { type: 'application/javascript' });
+                    
                     const worker = new Worker(URL.createObjectURL(blob));
                     worker.onmessage = (e) => {
                         if (e.data.type === 'log') {
-                            logToScreen("> " + originalCode);
-                            logToScreen(e.data.val);
+                            if (e.data.val !== undefined) logToScreen(e.data.val);
                         } else if (e.data.type === 'error') {
                             logToScreen("> <span class='error-line'>" + originalCode + "</span>");
                             logToScreen(e.data.errorType, "error-msg");
                         }
                     };
+                    logToScreen("> " + originalCode);
                     worker.postMessage(val);
-                    setTimeout(() => worker.terminate(), 2000);
+                    setTimeout(() => worker.terminate(), 5000); // 5s timeout for animated scripts
                 }
             }
             bar.value = "";
