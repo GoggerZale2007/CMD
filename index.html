@@ -16,7 +16,6 @@
 
         #display-screen { flex-grow: 1; padding: 10px; overflow-y: auto; }
         
-        /* The Real Fix: Mirroring text to keep cursor glued */
         #input-area {
             display: flex; align-items: center; background-color: #000;
             padding: 10px 12px; border-top: 1px solid #1a1a1a;
@@ -38,12 +37,13 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* Keyboard UI */
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
+
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
         .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 2px; }
         .pc-key { background: #262626; color: #fff; border: none; padding: 8px 10px; font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 40px; }
+
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Fira Code'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
@@ -80,19 +80,41 @@
                 <button class="pc-key" onclick="addText('8')">8</button>
                 <button class="pc-key" onclick="addText('9')">9</button>
                 <button class="pc-key" onclick="addText('0')">0</button>
+                <button class="pc-key" onclick="addText('-')">-</button>
+                <button class="pc-key" onclick="addText('=')">=</button>
+                <button class="pc-key" onclick="addText('`')">`</button>
             </div>
             <div class="pc-row">
                 <button class="pc-key" onclick="addText('!')">!</button>
                 <button class="pc-key" onclick="addText('@')">@</button>
                 <button class="pc-key" onclick="addText('#')">#</button>
                 <button class="pc-key" onclick="addText('$')">$</button>
+                <button class="pc-key" onclick="addText('%')">%</button>
+                <button class="pc-key" onclick="addText('^')">^</button>
+                <button class="pc-key" onclick="addText('&')">&</button>
+                <button class="pc-key" onclick="addText('*')">*</button>
                 <button class="pc-key" onclick="addText('(')">(</button>
                 <button class="pc-key" onclick="addText(')')">)</button>
-                <button class="pc-key" onclick="addText('{')">{</button>
-                <button class="pc-key" onclick="addText('}')">}</button>
-                <button class="pc-key" onclick="addText('&quot;')">"</button>
+                <button class="pc-key" onclick="addText('_')">_</button>
+                <button class="pc-key" onclick="addText('+')">+</button>
+                <button class="pc-key" onclick="addText('~')">~</button>
             </div>
             <div class="pc-row">
+                <button class="pc-key" onclick="addText('{')">{</button>
+                <button class="pc-key" onclick="addText('}')">}</button>
+                <button class="pc-key" onclick="addText('[')">[</button>
+                <button class="pc-key" onclick="addText(']')">]</button>
+                <button class="pc-key" onclick="addText('|')">|</button>
+                <button class="pc-key" onclick="addText('\\')">\</button>
+                <button class="pc-key" onclick="addText(':')">:</button>
+                <button class="pc-key" onclick="addText(';')">;</button>
+                <button class="pc-key" onclick="addText('&quot;')">"</button>
+                <button class="pc-key" onclick="addText('\'')">'</button>
+                <button class="pc-key" onclick="addText('<')"><</button>
+                <button class="pc-key" onclick="addText('>')">></button>
+                <button class="pc-key" onclick="addText('?')">?</button>
+                <button class="pc-key" onclick="addText('/')">/</button>
+                <button class="pc-key" onclick="addText(',')">,</button>
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
                 <button class="pc-key" onclick="handleTab()">TAB</button>
@@ -136,7 +158,7 @@
                 <button class="key" onclick="backspace()" style="flex:1.5">DEL</button>
             </div>
             <div class="kb-row">
-                <button class="key" onclick="addText('.')">.</button>
+                <button class="key special-key" onclick="addText('.')">.</button>
                 <button class="key" style="flex:4" onclick="addText(' ')">SPACE</button>
                 <button class="key run-key" onclick="handleRun()">RUN</button>
             </div>
@@ -230,10 +252,11 @@
 
             if (waitingForConfirm) {
                 logToScreen("> " + val);
-                if (val.toUpperCase() === "Y") {
+                const choice = val.toUpperCase();
+                if (choice === "Y") {
                     logToScreen("Prompt received");
                     isPrankActive = true;
-                } else if (val.toUpperCase() === "N") {
+                } else if (choice === "N") {
                     logToScreen("Prompt received");
                 }
                 waitingForConfirm = false;
