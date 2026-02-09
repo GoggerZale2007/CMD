@@ -26,14 +26,13 @@
             resize: none; min-height: 30px; width: 100%; caret-color: #fff;
         }
 
-        /* Ultra Compact QWERTY Keyboard */
+        /* Full-Featured Compact Keyboard */
         #v-keyboard {
             background: #0a0a0a; padding: 2px; border-top: 1px solid #333;
             display: none; flex-direction: column; gap: 3px;
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Responsive: Only show virtual keyboard on mobile */
         @media (max-width: 768px) { #v-keyboard { display: flex; } }
 
         .kb-row { display: flex; justify-content: center; gap: 2px; width: 100%; }
@@ -47,6 +46,7 @@
         
         .key:active { background: #444; }
         .active-shift { background: #555 !important; border-color: #fff !important; }
+        .special-key { background: #1a1a1a; color: #569cd6; } /* Blueish for symbols/CTRL */
         .run-key { flex: 2; background: #fff; color: #000; font-weight: bold; }
 
         .error-msg { color: #ff5555; font-weight: bold; }
@@ -64,6 +64,18 @@
     </div>
 
     <div id="v-keyboard">
+        <div class="kb-row">
+            <button class="key special-key" onclick="addText('1')">1</button>
+            <button class="key special-key" onclick="addText('2')">2</button>
+            <button class="key special-key" onclick="addText('3')">3</button>
+            <button class="key special-key" onclick="addText('4')">4</button>
+            <button class="key special-key" onclick="addText('5')">5</button>
+            <button class="key special-key" onclick="addText('6')">6</button>
+            <button class="key special-key" onclick="addText('7')">7</button>
+            <button class="key special-key" onclick="addText('8')">8</button>
+            <button class="key special-key" onclick="addText('9')">9</button>
+            <button class="key special-key" onclick="addText('0')">0</button>
+        </div>
         <div class="kb-row">
             <button class="key" onclick="addText('Q')">Q</button>
             <button class="key" onclick="addText('W')">W</button>
@@ -86,10 +98,10 @@
             <button class="key" onclick="addText('J')">J</button>
             <button class="key" onclick="addText('K')">K</button>
             <button class="key" onclick="addText('L')">L</button>
-            <button class="key" onclick="addText(';')">;</button>
+            <button class="key special-key" onclick="addText('=')">=</button>
         </div>
         <div class="kb-row">
-            <button id="shift-key" class="key" onclick="toggleShift()" style="flex:1.5">SHIFT</button>
+            <button id="shift-key" class="key special-key" onclick="toggleShift()" style="flex:1.2">SHIFT</button>
             <button class="key" onclick="addText('Z')">Z</button>
             <button class="key" onclick="addText('X')">X</button>
             <button class="key" onclick="addText('C')">C</button>
@@ -97,13 +109,15 @@
             <button class="key" onclick="addText('B')">B</button>
             <button class="key" onclick="addText('N')">N</button>
             <button class="key" onclick="addText('M')">M</button>
-            <button class="key" onclick="backspace()" style="flex:1.5">DEL</button>
+            <button class="key special-key" onclick="addText('[')">[</button>
+            <button class="key special-key" onclick="addText(']')">]</button>
         </div>
         <div class="kb-row">
-            <button class="key" onclick="addText('(')">(</button>
-            <button class="key" onclick="addText(')')">)</button>
-            <button class="key" style="flex:3" onclick="addText(' ')">SPACE</button>
-            <button class="key" onclick="addText('\'')">'</button>
+            <button class="key special-key" onclick="addText('(')">(</button>
+            <button class="key special-key" onclick="addText(')')">)</button>
+            <button class="key" style="flex:2.5" onclick="addText(' ')">SPACE</button>
+            <button class="key special-key" onclick="addText('.')">.</button>
+            <button class="key special-key" onclick="backspace()">DEL</button>
             <button class="key run-key" onclick="handleRun()">RUN</button>
         </div>
     </div>
@@ -114,7 +128,6 @@
         const display = document.getElementById('display-screen');
         let shiftActive = false;
 
-        // Auto-focus and Fullscreen for better mobile experience
         function requestFS() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
