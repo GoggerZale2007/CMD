@@ -281,7 +281,7 @@
             } else {
                 if (isPrankActive) {
                     logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                    logToScreen("declined", "error-msg");
+                    logToScreen("CodeError", "error-msg");
                 } else {
                     const blob = new Blob([`
                         onmessage = function(e) {
