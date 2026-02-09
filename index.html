@@ -19,34 +19,45 @@
         #input-area {
             display: flex; align-items: flex-start; background-color: #000;
             padding: 10px 12px; border-top: 1px solid #1a1a1a;
-            font-size: 16px; min-height: 45px;
+            font-size: 18px; min-height: 45px; position: relative;
         }
 
         #prompt-symbol { color: #fff; margin-right: 8px; flex-shrink: 0; margin-top: 2px; }
         
+        #input-container { position: relative; flex-grow: 1; display: flex; align-items: flex-start; }
+
         #command-bar {
             flex-grow: 1; background: transparent; border: none; color: #fff;
-            font-family: 'Fira Code', monospace; font-size: 16px; outline: none;
-            resize: none; min-height: 24px; width: 100%; caret-color: #fff;
-            padding: 0; line-height: 1.4;
+            font-family: 'Fira Code', monospace; font-size: 18px; outline: none;
+            resize: none; min-height: 24px; width: 100%; 
+            caret-color: transparent; 
+            padding: 0; line-height: 1.4; white-space: pre-wrap; word-break: break-all;
         }
+
+        #blinker {
+            display: inline-block; width: 12px; height: 3px;
+            background-color: #fff; animation: blink 1s infinite;
+            position: absolute; pointer-events: none;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Error Highlights */
+        .error-line { background-color: #441111; display: inline-block; width: 100%; }
+        .error-msg { color: #ff5555; font-weight: bold; margin-top: 4px; font-size: 14px; }
+        .output-text { color: #fff; margin-bottom: 2px; font-size: 16px; }
 
         /* Keyboard UI */
         #keyboard-wrapper { background: #171717; display: none; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
         @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
-
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
         .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 2px; }
         .pc-key { background: #262626; color: #fff; border: none; padding: 8px 10px; font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 40px; }
-
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         .key { background: #333333; color: #eee; border: none; padding: 12px 0; font-family: 'Fira Code'; font-size: 14px; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
         .key:active { background: #4a4a4a; }
         .active-mod { background: #fff !important; color: #000 !important; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
-        .error-msg { color: #ff5555; font-weight: bold; }
-        .output-text { color: #fff; margin-bottom: 2px; font-size: 13px; }
     </style>
 </head>
 <body onclick="handleInteraction()">
@@ -57,7 +68,10 @@
 
     <div id="input-area">
         <span id="prompt-symbol">></span>
-        <textarea id="command-bar" spellcheck="false" rows="1" inputmode="none"></textarea>
+        <div id="input-container">
+            <textarea id="command-bar" spellcheck="false" rows="1" inputmode="none"></textarea>
+            <div id="blinker"></div>
+        </div>
     </div>
 
     <div id="keyboard-wrapper">
@@ -73,40 +87,21 @@
                 <button class="pc-key" onclick="addText('8')">8</button>
                 <button class="pc-key" onclick="addText('9')">9</button>
                 <button class="pc-key" onclick="addText('0')">0</button>
-                <button class="pc-key" onclick="addText('-')">-</button>
-                <button class="pc-key" onclick="addText('=')">=</button>
-                <button class="pc-key" onclick="addText('`')">`</button>
             </div>
             <div class="pc-row">
                 <button class="pc-key" onclick="addText('!')">!</button>
                 <button class="pc-key" onclick="addText('@')">@</button>
                 <button class="pc-key" onclick="addText('#')">#</button>
                 <button class="pc-key" onclick="addText('$')">$</button>
-                <button class="pc-key" onclick="addText('%')">%</button>
-                <button class="pc-key" onclick="addText('^')">^</button>
-                <button class="pc-key" onclick="addText('&')">&</button>
-                <button class="pc-key" onclick="addText('*')">*</button>
                 <button class="pc-key" onclick="addText('(')">(</button>
                 <button class="pc-key" onclick="addText(')')">)</button>
-                <button class="pc-key" onclick="addText('_')">_</button>
-                <button class="pc-key" onclick="addText('+')">+</button>
-                <button class="pc-key" onclick="addText('~')">~</button>
-            </div>
-            <div class="pc-row">
                 <button class="pc-key" onclick="addText('{')">{</button>
                 <button class="pc-key" onclick="addText('}')">}</button>
-                <button class="pc-key" onclick="addText('[')">[</button>
-                <button class="pc-key" onclick="addText(']')">]</button>
-                <button class="pc-key" onclick="addText('|')">|</button>
-                <button class="pc-key" onclick="addText('\\')">\</button>
-                <button class="pc-key" onclick="addText(':')">:</button>
-                <button class="pc-key" onclick="addText(';')">;</button>
                 <button class="pc-key" onclick="addText('&quot;')">"</button>
-                <button class="pc-key" onclick="addText('\'')">'</button>
-                <button class="pc-key" onclick="addText('<')"><</button>
-                <button class="pc-key" onclick="addText('>')">></button>
-                <button class="pc-key" onclick="addText('?')">?</button>
-                <button class="pc-key" onclick="addText('/')">/</button>
+                <button class="pc-key" onclick="addText('+')">+</button>
+                <button class="pc-key" onclick="addText('=')">=</button>
+            </div>
+            <div class="pc-row">
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
                 <button class="pc-key" onclick="handleTab()">TAB</button>
@@ -159,6 +154,7 @@
 
     <script>
         const bar = document.getElementById('command-bar');
+        const blinker = document.getElementById('blinker');
         const screen = document.getElementById('text-output');
         const display = document.getElementById('display-screen');
         const kbWrapper = document.getElementById('keyboard-wrapper');
@@ -168,9 +164,7 @@
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isNotDesktopMode = isMobile && window.innerWidth <= 768;
 
-        if (isNotDesktopMode) {
-            kbWrapper.style.display = 'flex';
-        }
+        if (isNotDesktopMode) kbWrapper.style.display = 'flex';
 
         function handleInteraction() {
             if (isNotDesktopMode && !document.fullscreenElement) {
@@ -202,13 +196,13 @@
             }
         }
 
-        function handleTab() { bar.value += "    "; autoResize(); }
-        function handleEsc() { bar.value = ""; autoResize(); }
+        function handleTab() { bar.value += "    "; updateBlinker(); }
+        function handleEsc() { bar.value = ""; updateBlinker(); }
 
         function addText(txt) {
             bar.value += shiftActive ? txt.toUpperCase() : txt.toLowerCase();
             if (shiftActive) toggleShift(); 
-            autoResize();
+            updateBlinker();
         }
 
         function backspace() {
@@ -219,19 +213,31 @@
                 return;
             }
             bar.value = bar.value.slice(0, -1);
-            autoResize();
+            updateBlinker();
         }
 
-        function autoResize() {
+        function updateBlinker() {
             bar.style.height = 'auto';
             bar.style.height = bar.scrollHeight + 'px';
+            
+            const lines = bar.value.split('\n');
+            const lastLine = lines[lines.length - 1];
+            
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            context.font = "18px 'Fira Code'";
+            const lastLineWidth = context.measureText(lastLine).width;
+            
+            blinker.style.left = lastLineWidth + "px";
+            blinker.style.top = (lines.length - 1) * 25.2 + 18 + "px"; // 1.4 line-height
+            
             display.scrollTop = display.scrollHeight;
         }
 
         function handleRun() {
             if (shiftActive) {
                 bar.value += "\n";
-                autoResize();
+                updateBlinker();
                 toggleShift();
             } else {
                 execute();
@@ -239,22 +245,22 @@
         }
 
         function execute() {
-            const val = bar.value.trim();
+            const originalCode = bar.value;
+            const val = originalCode.trim();
             if (!val) return;
 
             if (waitingForConfirm) {
                 logToScreen("> " + val);
-                const choice = val.toUpperCase();
-                if (choice === "Y") {
+                if (val.toUpperCase() === "Y") {
                     logToScreen("Prompt received");
                     isPrankActive = true;
-                } else if (choice === "N") {
+                } else if (val.toUpperCase() === "N") {
                     logToScreen("Prompt received");
                 }
                 waitingForConfirm = false;
             } else {
-                logToScreen("> " + val);
                 if (isPrankActive) {
+                    logToScreen("> <span class='error-line'>" + originalCode + "</span>");
                     logToScreen("TypeError", "error-msg");
                 } else {
                     const blob = new Blob([`
@@ -267,24 +273,24 @@
                     `], { type: 'application/javascript' });
                     const worker = new Worker(URL.createObjectURL(blob));
                     worker.onmessage = (e) => {
-                        if (e.data.type === 'log') logToScreen(e.data.val);
-                        else if (e.data.type === 'error') logToScreen("TypeError", "error-msg");
+                        if (e.data.type === 'log') {
+                            logToScreen("> " + originalCode);
+                            logToScreen(e.data.val);
+                        } else if (e.data.type === 'error') {
+                            logToScreen("> <span class='error-line'>" + originalCode + "</span>");
+                            logToScreen("TypeError", "error-msg");
+                        }
                     };
                     worker.postMessage(val);
                     setTimeout(() => worker.terminate(), 2000);
                 }
             }
             bar.value = "";
-            bar.style.height = "24px";
+            updateBlinker();
         }
 
-        bar.addEventListener("input", autoResize);
-        bar.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                execute();
-            }
-        });
+        bar.addEventListener("input", updateBlinker);
+        window.onload = updateBlinker;
     </script>
 </body>
 </html>
