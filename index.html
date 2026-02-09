@@ -33,13 +33,16 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
+        @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
+
         #pc-bar {
-            display: flex; gap: 2px; padding: 5px; background: #000;
-            border-top: 1px solid #333; overflow-x: auto;
+            display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000;
+            border-top: 1px solid #333;
         }
+        .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 2px; }
         .pc-key {
-            background: #262626; color: #fff; border: none; padding: 8px 12px;
-            font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 45px;
+            background: #262626; color: #fff; border: none; padding: 8px 10px;
+            font-size: 11px; font-family: 'Fira Code'; border-radius: 3px; min-width: 40px;
         }
 
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 6px; }
@@ -71,21 +74,51 @@
 
     <div id="keyboard-wrapper">
         <div id="pc-bar">
-            <button class="pc-key" onclick="addText('CTRL')">CTRL</button>
-            <button class="pc-key" onclick="addText('ALT')">ALT</button>
-            <button class="pc-key" onclick="addText('TAB')">TAB</button>
-            <button class="pc-key" onclick="addText('ESC')">ESC</button>
-            <button class="pc-key" onclick="addText('(')">(</button>
-            <button class="pc-key" onclick="addText(')')">)</button>
-            <button class="pc-key" onclick="addText('&quot;')">"</button>
-            <button class="pc-key" onclick="addText('\'')">'</button>
-            <button class="pc-key" onclick="addText('{')">{</button>
-            <button class="pc-key" onclick="addText('}')">}</button>
-            <button class="pc-key" onclick="addText('[')">[</button>
-            <button class="pc-key" onclick="addText(']')">]</button>
-            <button class="pc-key" onclick="addText('<')"><</button>
-            <button class="pc-key" onclick="addText('>')">></button>
-            <button class="pc-key" onclick="addText('=')">=</button>
+            <div class="pc-row">
+                <button class="pc-key" onclick="addText('1')">1</button>
+                <button class="pc-key" onclick="addText('2')">2</button>
+                <button class="pc-key" onclick="addText('3')">3</button>
+                <button class="pc-key" onclick="addText('4')">4</button>
+                <button class="pc-key" onclick="addText('5')">5</button>
+                <button class="pc-key" onclick="addText('6')">6</button>
+                <button class="pc-key" onclick="addText('7')">7</button>
+                <button class="pc-key" onclick="addText('8')">8</button>
+                <button class="pc-key" onclick="addText('9')">9</button>
+                <button class="pc-key" onclick="addText('0')">0</button>
+                <button class="pc-key" onclick="addText('-')">-</button>
+                <button class="pc-key" onclick="addText('=')">=</button>
+            </div>
+            <div class="pc-row">
+                <button class="pc-key" onclick="addText('!')">!</button>
+                <button class="pc-key" onclick="addText('@')">@</button>
+                <button class="pc-key" onclick="addText('#')">#</button>
+                <button class="pc-key" onclick="addText('$')">$</button>
+                <button class="pc-key" onclick="addText('%')">%</button>
+                <button class="pc-key" onclick="addText('^')">^</button>
+                <button class="pc-key" onclick="addText('&')">&</button>
+                <button class="pc-key" onclick="addText('*')">*</button>
+                <button class="pc-key" onclick="addText('(')">(</button>
+                <button class="pc-key" onclick="addText(')')">)</button>
+                <button class="pc-key" onclick="addText('_')">_</button>
+                <button class="pc-key" onclick="addText('+')">+</button>
+                <button class="pc-key" onclick="addText('{')">{</button>
+                <button class="pc-key" onclick="addText('}')">}</button>
+                <button class="pc-key" onclick="addText('[')">[</button>
+                <button class="pc-key" onclick="addText(']')">]</button>
+                <button class="pc-key" onclick="addText('|')">|</button>
+                <button class="pc-key" onclick="addText('\\')">\</button>
+                <button class="pc-key" onclick="addText(':')">:</button>
+                <button class="pc-key" onclick="addText('&quot;')">"</button>
+                <button class="pc-key" onclick="addText('<')"><</button>
+                <button class="pc-key" onclick="addText('>')">></button>
+                <button class="pc-key" onclick="addText('?')">?</button>
+            </div>
+            <div class="pc-row">
+                <button class="pc-key" onclick="addText('CTRL')">CTRL</button>
+                <button class="pc-key" onclick="addText('ALT')">ALT</button>
+                <button class="pc-key" onclick="addText('TAB')">TAB</button>
+                <button class="pc-key" onclick="addText('ESC')">ESC</button>
+            </div>
         </div>
 
         <div id="v-keyboard">
