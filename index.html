@@ -39,10 +39,9 @@
         .output-text { color: #fff; margin-bottom: 5px; font-size: 16px; white-space: pre-wrap; }
         .output-img { max-width: 100%; border-radius: 4px; margin: 10px 0; border: 1px solid #333; }
 
-        /* KEYBOARD FIX */
         #keyboard-wrapper { 
             background: #171717; 
-            display: flex; /* Force display on for now */
+            display: flex; 
             flex-direction: column; 
             height: auto;
             max-height: 320px;
@@ -56,7 +55,6 @@
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 4px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         .key { background: #333333; color: #eee; border: none; font-family: 'Cascadia Mono'; font-size: 14px; padding: 12px 0; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
-        .key:active { background: #4a4a4a; }
         .active-mod { background: #fff !important; color: #000 !important; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
     </style>
@@ -173,6 +171,12 @@
         let shiftActive = false, ctrlActive = false, altActive = false;
         let isPrankActive = false, waitingForConfirm = false;
 
+        window.onload = function() {
+            logToScreen("CMD Terminal 1.0");
+            logToScreen("Enter code and hit Run.");
+            autoResize();
+        };
+
         function handleInteraction() {
             if (window.innerWidth <= 768 && !document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -183,7 +187,6 @@
         function logToScreen(content, className = "") {
             const div = document.createElement('div');
             const imgRegex = /\.(jpeg|jpg|gif|png|webp|svg)$|data:image\//i;
-            
             if (imgRegex.test(String(content).trim())) {
                 const img = document.createElement('img');
                 img.src = content.trim();
@@ -265,7 +268,7 @@
             } else {
                 if (isPrankActive) {
                     logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                    logToScreen("TypeError", "error-msg");
+                    logToScreen("There is a problem while running the code, please try again.", "error-msg");
                 } else {
                     const blob = new Blob([`
                         onmessage = function(e) {
@@ -299,4 +302,4 @@
         bar.addEventListener("input", autoResize);
     </script>
 </body>
-</html>
+<declinedd
