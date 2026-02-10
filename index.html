@@ -14,7 +14,10 @@
             overflow: hidden;
         }
 
-        #display-screen { flex-grow: 1; padding: 15px; overflow-y: auto; }
+        #display-screen { 
+            flex-grow: 1; padding: 15px; overflow-y: auto; 
+            scroll-behavior: smooth;
+        }
         
         #input-area {
             display: flex; align-items: flex-start; background-color: #000;
@@ -35,27 +38,17 @@
 
         .error-line { background-color: #441111; display: inline-block; width: 100%; }
         .error-msg { color: #ff5555; font-weight: bold; margin-top: 4px; font-size: 14px; }
-        
         .output-text { color: #fff; margin-bottom: 5px; font-size: 16px; white-space: pre-wrap; }
         .output-img { max-width: 100%; border-radius: 4px; margin: 10px 0; border: 1px solid #333; }
 
-        #keyboard-wrapper { 
-            background: #171717; 
-            display: flex; 
-            flex-direction: column; 
-            height: auto;
-            max-height: 320px;
-            padding-bottom: env(safe-area-inset-bottom); 
-        }
-
+        #keyboard-wrapper { background: #171717; display: flex; flex-direction: column; max-height: 320px; padding-bottom: env(safe-area-inset-bottom); }
+        @media (max-width: 768px) { #keyboard-wrapper { display: flex; } }
         #pc-bar { display: flex; flex-direction: column; gap: 2px; padding: 5px; background: #000; border-top: 1px solid #333; }
         .pc-row { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 5px; }
         .pc-key { background: #262626; color: #fff; border: none; padding: 10px 12px; font-size: 12px; font-family: 'Cascadia Mono'; border-radius: 3px; min-width: 42px; }
-
         #v-keyboard { padding: 4px; display: flex; flex-direction: column; gap: 4px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; width: 100%; }
         .key { background: #333333; color: #eee; border: none; font-family: 'Cascadia Mono'; font-size: 14px; padding: 12px 0; flex: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
-        .active-mod { background: #fff !important; color: #000 !important; }
         .run-key { background: #fff; color: #000; font-weight: bold; flex: 2; }
     </style>
 </head>
@@ -85,35 +78,24 @@
                 <button class="pc-key" onclick="addText('8')">8</button>
                 <button class="pc-key" onclick="addText('9')">9</button>
                 <button class="pc-key" onclick="addText('0')">0</button>
-                <button class="pc-key" onclick="addText('+')">+</button>
-                <button class="pc-key" onclick="addText('-')">-</button>
-                <button class="pc-key" onclick="addText('*')">*</button>
-                <button class="pc-key" onclick="addText('/')">/</button>
-                <button class="pc-key" onclick="addText('=')">=</button>
             </div>
             <div class="pc-row">
-                <button class="pc-key" onclick="addText('!')">!</button>
-                <button class="pc-key" onclick="addText('@')">@</button>
-                <button class="pc-key" onclick="addText('#')">#</button>
-                <button class="pc-key" onclick="addText('$')">$</button>
                 <button class="pc-key" onclick="addText('(')">(</button>
                 <button class="pc-key" onclick="addText(')')">)</button>
                 <button class="pc-key" onclick="addText('[')">[</button>
                 <button class="pc-key" onclick="addText(']')">]</button>
                 <button class="pc-key" onclick="addText('{')">{</button>
                 <button class="pc-key" onclick="addText('}')">}</button>
-                <button class="pc-key" onclick="addText('&quot;')">"</button>
-                <button class="pc-key" onclick="addText('\'')">'</button>
+                <button class="pc-key" onclick="addText('+')">+</button>
+                <button class="pc-key" onclick="addText('-')">-</button>
+                <button class="pc-key" onclick="addText('*')">*</button>
+                <button class="pc-key" onclick="addText('/')">/</button>
             </div>
             <div class="pc-row">
-                <button class="pc-key" onclick="addText('<')"><</button>
-                <button class="pc-key" onclick="addText('>')">></button>
-                <button class="pc-key" onclick="addText(':')">:</button>
+                <button class="pc-key" onclick="addText('&quot;')">"</button>
+                <button class="pc-key" onclick="addText('\'')">'</button>
                 <button class="pc-key" onclick="addText(';')">;</button>
-                <button class="pc-key" onclick="addText(',')">,</button>
-                <button class="pc-key" onclick="addText('.')">.</button>
-                <button class="pc-key" onclick="addText('?')">?</button>
-                <button class="pc-key" onclick="addText('_')">_</button>
+                <button class="pc-key" onclick="addText(':')">:</button>
                 <button id="ctrl-key" class="pc-key" onclick="toggleMod('ctrl')">CTRL</button>
                 <button id="alt-key" class="pc-key" onclick="toggleMod('alt')">ALT</button>
                 <button class="pc-key" onclick="handleTab()">TAB</button>
@@ -256,7 +238,9 @@
             const val = originalCode.trim();
             if (!val) return;
 
-            if (waitingForConfirm) {
+            if (val.toLowerCase() === "cls") {
+                screen.innerHTML = "";
+            } else if (waitingForConfirm) {
                 logToScreen("> " + val);
                 if (val.toUpperCase() === "Y") {
                     logToScreen("Prompt received");
@@ -266,16 +250,19 @@
                 }
                 waitingForConfirm = false;
             } else {
+                logToScreen("> " + originalCode);
                 if (isPrankActive) {
-                    logToScreen("> <span class='error-line'>" + originalCode + "</span>");
-                    logToScreen("There is a problem while running the code, please try again.", "error-msg");
+                    logToScreen("<span class='error-line'>" + originalCode + "</span>");
+                    logToScreen("null", "error-msg");
                 } else {
                     const blob = new Blob([`
                         onmessage = function(e) {
                             try {
-                                const print = (c) => postMessage({type: 'log', val: c});
-                                const result = eval(e.data);
-                                if (result !== undefined) postMessage({type: 'log', val: result});
+                                // Updated print function to send multiple messages
+                                const print = (content) => postMessage({type: 'log', val: content});
+                                
+                                // Process the user code
+                                eval(e.data);
                             } catch (err) {
                                 postMessage({type: 'error', errorType: err.name});
                             }
@@ -287,11 +274,10 @@
                         if (e.data.type === 'log') {
                             logToScreen(e.data.val);
                         } else if (e.data.type === 'error') {
-                            logToScreen("> <span class='error-line'>" + originalCode + "</span>");
+                            logToScreen("<span class='error-line'>" + originalCode + "</span>");
                             logToScreen(e.data.errorType, "error-msg");
                         }
                     };
-                    logToScreen("> " + originalCode);
                     worker.postMessage(val);
                 }
             }
@@ -302,4 +288,4 @@
         bar.addEventListener("input", autoResize);
     </script>
 </body>
-<declinedd
+</html>
