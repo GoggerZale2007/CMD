@@ -152,6 +152,7 @@
         const display = document.getElementById('display-screen');
         let shiftActive = false, ctrlActive = false, altActive = false;
         let isPrankActive = false, waitingForConfirm = false;
+        let currentWorker = null;
 
         window.onload = function() {
             logToScreen("CMD Terminal 1.0");
@@ -251,34 +252,44 @@
                 waitingForConfirm = false;
             } else {
                 logToScreen("> " + originalCode);
+                
                 if (isPrankActive) {
                     logToScreen("<span class='error-line'>" + originalCode + "</span>");
                     logToScreen("null", "error-msg");
                 } else {
+                    if(currentWorker) currentWorker.terminate();
+
                     const blob = new Blob([`
                         onmessage = function(e) {
                             try {
-                                // Updated print function to send multiple messages
-                                const print = (content) => postMessage({type: 'log', val: content});
+                                const print = (c) => postMessage({type: 'log', val: c});
+                                self.console.log = print;
                                 
-                                // Process the user code
-                                eval(e.data);
+                                const result = eval(e.data);
+                                if (result !== undefined) postMessage({type: 'log', val: result});
                             } catch (err) {
-                                postMessage({type: 'error', errorType: err.name});
+                                postMessage({type: 'error', errorType: err.name, msg: err.message});
                             }
                         }
                     `], { type: 'application/javascript' });
                     
-                    const worker = new Worker(URL.createObjectURL(blob));
-                    worker.onmessage = (e) => {
+                    currentWorker = new Worker(URL.createObjectURL(blob));
+                    
+                    const timeout = setTimeout(() => {
+                        currentWorker.terminate();
+                        logToScreen("Process Terminated: Timeout", "error-msg");
+                    }, 5000);
+
+                    currentWorker.onmessage = (e) => {
                         if (e.data.type === 'log') {
                             logToScreen(e.data.val);
                         } else if (e.data.type === 'error') {
+                            clearTimeout(timeout);
                             logToScreen("<span class='error-line'>" + originalCode + "</span>");
-                            logToScreen(e.data.errorType, "error-msg");
+                            logToScreen(e.data.errorType + ": " + e.data.msg, "error-msg");
                         }
                     };
-                    worker.postMessage(val);
+                    currentWorker.postMessage(val);
                 }
             }
             bar.value = "";
@@ -289,3 +300,4 @@
     </script>
 </body>
 </html>
+0
